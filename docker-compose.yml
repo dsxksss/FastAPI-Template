@@ -1,0 +1,79 @@
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexus-postgres
+    environment:
+      POSTGRES_DB: nexus_backend
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - nexus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI 应用
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus-backend
+    environment:
+      # 数据库配置
+      DB_ENGINE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      DB_NAME: nexus_backend
+
+      # 应用配置
+      DEBUG: "False"
+      APP_ENV: production
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+
+      # 搜索引擎配置（需要替换为实际值）
+      SEARCH_API: tavily
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-tvly-your-api-key}
+
+      # OA 配置（需要替换为实际值）
+      OA_URL: ${OA_URL:-your-oa-url}
+      OA_USERNAME: ${OA_USERNAME:-your-username}
+      OA_PASSWORD: ${OA_PASSWORD:-your-password}
+      OA_LOGIN_NAME: ${OA_LOGIN_NAME:-your-login-name}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./static:/app/static
+    networks:
+      - nexus-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  nexus-network:
+    driver: bridge

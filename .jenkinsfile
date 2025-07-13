@@ -1,0 +1,571 @@
+pipeline {
+    agent {
+        docker {
+            image 'docker:24-dind'
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock -u root'
+        }
+    }
+    
+    parameters {
+        choice(
+            name: 'DEPLOY_ENVIRONMENT',
+            choices: ['production', 'test'],
+            description: '选择部署环境'
+        )
+    }
+    
+    environment {
+        // Docker Registry配置
+        DOCKER_REGISTRY = 'crpi-nessk20nyrqkpfxu.cn-shenzhen.personal.cr.aliyuncs.com'
+        DOCKER_REPO = 'giihg/nexus-backend'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        
+        // Docker配置
+        DOCKER_TLS_CERTDIR = ''
+        DOCKER_HOST = 'unix:///var/run/docker.sock'
+        DOCKER_CONFIG = '/tmp/.docker'
+        
+        // 凭据ID配置
+        DOCKER_CREDENTIALS_ID = '812fd0fe-1459-4581-a123-a47a5a90424e'
+        GIT_CREDENTIALS_ID = 'da36b5e6-be3d-4b3f-a5a4-6be2483dbaed'
+        SSH_CREDENTIALS_ID = '49328086-fb58-421f-8f1e-749f7d5d528d'
+        
+        // 远程部署配置 - 根据环境动态设置
+        DEPLOY_SERVER_HOST = "${params.DEPLOY_ENVIRONMENT == 'test' ? '172.16.212.14' : '172.16.212.10'}"
+        DEPLOY_SERVER_USER = 'user'
+        DEPLOY_REPO_URL = 'https://e.coding.net/g-iwsh7192/Agent/nexus-backend.git'
+        DEPLOY_SCRIPT_PATH = 'scripts/deploy.sh'
+        ENV_FILE_CREDENTIALS_ID = "${params.DEPLOY_ENVIRONMENT == 'test' ? '9a75079c-9652-40b4-8351-11333813469b' : '8936d228-c3ce-4522-97d9-f5d69d4ac7a6'}"
+        
+        // 构建配置
+        PYTHON_VERSION = '3.11'
+        NODE_ENV = "${params.DEPLOY_ENVIRONMENT == 'test' ? 'test' : 'production'}"
+    }
+    
+    options {
+        // 构建保留策略
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        // 超时设置
+        timeout(time: 30, unit: 'MINUTES')
+        // 禁用并发构建
+        disableConcurrentBuilds()
+    }
+    
+    stages {
+        stage('初始化环境') {
+            steps {
+                script {
+                    echo "🔧 初始化Docker和Git环境..."
+                    sh '''
+                        # 创建Docker配置目录
+                        mkdir -p /tmp/.docker
+                        chmod 755 /tmp/.docker
+                        
+                        # 验证Docker是否正常工作
+                        docker --version
+                        docker info
+                        
+                        # 检查Docker socket权限
+                        ls -la /var/run/docker.sock
+                        
+                        # 修复Git安全配置问题
+                        echo "配置Git安全目录..."
+                        git config --global --add safe.directory '*'
+                        
+                        # 或者更安全的方式，只添加当前工作目录
+                        # git config --global --add safe.directory "${WORKSPACE}"
+                        
+                        # 验证Git配置
+                        echo "验证Git配置..."
+                        git config --global --list | grep safe.directory || echo "未设置safe.directory"
+                    '''
+                }
+            }
+        }
+        
+        stage('拉取代码') {
+            steps {
+                script {
+                    checkout([$class: 'GitSCM', 
+                        branches: [[name: '*/master']], 
+                        userRemoteConfigs: [[
+                            url: 'https://e.coding.net/g-iwsh7192/Agent/nexus-backend.git',
+                            credentialsId: env.GIT_CREDENTIALS_ID
+                        ]]
+                    ])
+                    
+                    // 在拉取代码后再次确保Git配置正确
+                    sh '''
+                        echo "设置当前仓库为安全目录..."
+                        git config --global --add safe.directory "$(pwd)"
+                        
+                        # 验证Git状态
+                        echo "验证Git仓库状态..."
+                        git status
+                        git log -1 --oneline
+                    '''
+                }
+            }
+        }
+        
+        stage('构建Docker镜像') {
+            steps {
+                script {
+                    echo "🐳 构建Docker镜像..."
+                    
+                    // 检查Dockerfile
+                    sh '''
+                        if [ ! -f Dockerfile ]; then
+                            echo "❌ 未找到Dockerfile"
+                            exit 1
+                        fi
+                        
+                        echo "=== Dockerfile内容预览 ==="
+                        head -20 Dockerfile
+                    '''
+                    
+                    // 构建镜像
+                    sh '''
+                        echo "构建镜像: ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}"
+                        
+                        # 设置Docker配置目录
+                        export DOCKER_CONFIG=/tmp/.docker
+                        
+                        # 获取Git信息（增加错误处理）
+                        VCS_REF="unknown"
+                        if git rev-parse --short HEAD >/dev/null 2>&1; then
+                            VCS_REF=$(git rev-parse --short HEAD)
+                            echo "Git提交ID: $VCS_REF"
+                        else
+                            echo "无法获取Git提交ID，使用默认值: $VCS_REF"
+                        fi
+                        
+                        docker build \
+                            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+                            --build-arg VCS_REF=$VCS_REF \
+                            --build-arg BUILD_NUMBER=${BUILD_NUMBER} \
+                            -t ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG} \
+                            .
+                        
+                        # 标记latest标签
+                        docker tag ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest
+                        
+                        # 显示镜像信息
+                        echo "=== 构建的镜像列表 ==="
+                        docker images | grep ${DOCKER_REPO}
+                        
+                        # 显示镜像大小（使用更简单的方法）
+                        echo "=== 镜像大小信息 ==="
+                        IMAGE_SIZE=$(docker inspect ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG} --format='{{.Size}}')
+                        echo "镜像大小: $IMAGE_SIZE 字节"
+                        
+                        # 计算MB大小
+                        IMAGE_SIZE_MB=$((IMAGE_SIZE / 1024 / 1024))
+                        echo "镜像大小: ${IMAGE_SIZE_MB}MB"
+                    '''
+                }
+            }
+        }
+        
+        stage('推送Docker镜像') {
+            steps {
+                script {
+                    echo "📤 推送Docker镜像到Registry..."
+                    
+                    // 获取当前分支名称 - 改进的方法，增加更多容错处理
+                    def branchName = ""
+                    try {
+                        // 方法1: 尝试使用Jenkins环境变量
+                        if (env.BRANCH_NAME) {
+                            branchName = env.BRANCH_NAME
+                            echo "使用 BRANCH_NAME: ${branchName}"
+                        } else if (env.GIT_BRANCH) {
+                            branchName = env.GIT_BRANCH
+                            echo "使用 GIT_BRANCH: ${branchName}"
+                        } else {
+                            // 方法2: 使用git命令获取分支名 - 增加更多容错处理
+                            def gitBranchResult = sh(
+                                script: '''
+                                    # 确保Git配置正确
+                                    git config --global --add safe.directory "$(pwd)" || true
+                                    
+                                    # 尝试多种方法获取分支名
+                                    if git rev-parse --abbrev-ref HEAD 2>/dev/null; then
+                                        exit 0
+                                    elif git branch --show-current 2>/dev/null; then
+                                        exit 0
+                                    elif git symbolic-ref --short HEAD 2>/dev/null; then
+                                        exit 0
+                                    else
+                                        echo "master"  # 默认分支
+                                        exit 0
+                                    fi
+                                ''', 
+                                returnStdout: true
+                            ).trim()
+                            
+                            branchName = gitBranchResult
+                            echo "使用 git 命令获取分支: ${branchName}"
+                        }
+                        
+                        // 清理分支名称（移除origin/前缀）
+                        if (branchName && branchName.startsWith('origin/')) {
+                            branchName = branchName.replace('origin/', '')
+                            echo "清理后的分支名: ${branchName}"
+                        }
+                        
+                        // 如果分支名为空或无效，使用默认值
+                        if (!branchName || branchName.trim().isEmpty()) {
+                            branchName = "master"
+                            echo "使用默认分支名: ${branchName}"
+                        }
+                        
+                    } catch (Exception e) {
+                        echo "获取分支名失败: ${e.getMessage()}"
+                        branchName = "master"  // 使用默认分支名
+                        echo "使用默认分支名: ${branchName}"
+                    }
+                    
+                    echo "🌿 当前分支: ${branchName}"
+                    
+                    // 判断是否为主分支
+                    def isMainBranch = (branchName == "main" || branchName == "master")
+                    echo "是否为主分支: ${isMainBranch}"
+                    
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: env.DOCKER_CREDENTIALS_ID,
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )
+                    ]) {
+                        sh '''
+                            # 设置Docker配置目录
+                            export DOCKER_CONFIG=/tmp/.docker
+                            
+                            # 登录Docker Registry
+                            echo "登录到 ${DOCKER_REGISTRY}..."
+                            echo $DOCKER_PASSWORD | docker login ${DOCKER_REGISTRY} -u $DOCKER_USERNAME --password-stdin
+                            
+                            # 推送带版本号的镜像
+                            echo "推送镜像: ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}"
+                            docker push ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}
+                            
+                            echo "✅ 镜像推送完成"
+                        '''
+                        
+                        sh '''
+                            echo "推送镜像: ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest"
+                            docker push ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest
+                            echo "✅ latest标签推送完成"
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('远程部署') {
+            steps {
+                script {
+                    echo "🚀 开始远程部署到 ${params.DEPLOY_ENVIRONMENT} 环境..."
+                    echo "🎯 目标服务器: ${DEPLOY_SERVER_HOST}"
+                    
+                    withCredentials([
+                        sshUserPrivateKey(
+                            credentialsId: env.SSH_CREDENTIALS_ID,
+                            keyFileVariable: 'SSH_KEY',
+                            usernameVariable: 'SSH_USER'
+                        )
+                    ]) {
+                        sh '''
+                            # 设置SSH配置
+                            mkdir -p ~/.ssh
+                            chmod 700 ~/.ssh
+                            
+                            # 配置SSH以使用提供的私钥
+                            eval $(ssh-agent -s)
+                            ssh-add ${SSH_KEY}
+                            
+                            # 设置目标服务器信息
+                            TARGET_HOST="${DEPLOY_SERVER_HOST}"
+                            TARGET_USER="${DEPLOY_SERVER_USER}"
+                            TARGET_PATH="/home/${DEPLOY_SERVER_USER}/nexus-backend"
+                            
+                            echo "🔍 连接信息:"
+                            echo "  服务器: ${TARGET_HOST}"
+                            echo "  用户: ${TARGET_USER}"
+                            echo "  路径: ${TARGET_PATH}"
+                            
+                            # 测试SSH连接
+                            echo "🔗 测试SSH连接..."
+                            ssh -o StrictHostKeyChecking=no ${TARGET_USER}@${TARGET_HOST} "echo 'SSH连接成功'"
+                            
+                            # 在目标服务器上创建项目目录并设置权限
+                            echo "📁 创建项目目录并设置权限..."
+                            ssh -o StrictHostKeyChecking=no ${TARGET_USER}@${TARGET_HOST} "
+                                mkdir -p ${TARGET_PATH} && \
+                                chmod 755 ${TARGET_PATH} && \
+                                chown ${TARGET_USER}:${TARGET_USER} ${TARGET_PATH}
+                            "
+                            
+                            # 第一步：使用Jenkins凭据拷贝env文件到目标服务器
+                            echo "📤 第一步：使用Jenkins凭据拷贝env文件到~/nexus-backend/.env..."
+                        '''
+                        
+                        // 使用Jenkins凭据系统获取环境文件
+                        withCredentials([
+                            file(
+                                credentialsId: env.ENV_FILE_CREDENTIALS_ID,
+                                variable: 'ENV_FILE_PATH'
+                            ),
+                            sshUserPrivateKey(
+                            credentialsId: env.SSH_CREDENTIALS_ID,
+                            keyFileVariable: 'SSH_KEY',
+                            usernameVariable: 'SSH_USER'
+                        )
+                        ]) {
+                            sh '''
+                                # 重新设置目标服务器信息（在withCredentials块内）
+                                TARGET_HOST="${DEPLOY_SERVER_HOST}"
+                                TARGET_USER="${DEPLOY_SERVER_USER}"
+                                TARGET_PATH="/home/${DEPLOY_SERVER_USER}/nexus-backend"
+                                
+                                # 检查凭据文件是否存在
+                                if [ -f "${ENV_FILE_PATH}" ]; then
+                                    echo "✅ 找到Jenkins凭据中的环境文件"
+                                    scp -o StrictHostKeyChecking=no -i  ${SSH_KEY} ${ENV_FILE_PATH} ${TARGET_USER}@${TARGET_HOST}:${TARGET_PATH}/.env
+                                    echo "✅ 环境文件已从Jenkins凭据拷贝到 ${TARGET_PATH}/.env"
+                                else
+                                    echo "⚠️ Jenkins凭据中未找到环境文件，尝试使用本地文件..."
+                                    # 回退到使用本地.env文件（如果存在）
+                                    if [ -f ".env" ]; then
+                                        echo "📁 找到本地.env文件，正在拷贝..."
+                                        scp -o StrictHostKeyChecking=no .env ${TARGET_USER}@${TARGET_HOST}:${TARGET_PATH}/.env
+                                        echo "✅ 本地.env文件已拷贝到 ${TARGET_PATH}/.env"
+                                    elif [ -f ".env.example" ]; then
+                                        echo "📁 使用.env.example作为模板..."
+                                        scp -o StrictHostKeyChecking=no .env.example ${TARGET_USER}@${TARGET_HOST}:${TARGET_PATH}/.env
+                                        echo "✅ .env.example已拷贝到 ${TARGET_PATH}/.env"
+                                    else
+                                        echo "❌ 未找到任何环境文件，部署可能失败"
+                                        exit 1
+                                    fi
+                                fi
+                            '''
+                        }
+                        
+                        sh '''
+                            # 重新设置目标服务器信息（在新的sh块中）
+                            TARGET_HOST="${DEPLOY_SERVER_HOST}"
+                            TARGET_USER="${DEPLOY_SERVER_USER}"
+                            TARGET_PATH="/home/${DEPLOY_SERVER_USER}/nexus-backend"
+                            
+                            # 确保拷贝的文件有正确的权限
+                            echo "🔧 设置文件权限..."
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${TARGET_USER}@${TARGET_HOST} "
+                                if [ -f ${TARGET_PATH}/.env ]; then
+                                    chmod 644 ${TARGET_PATH}/.env && \
+                                    chown ${TARGET_USER}:${TARGET_USER} ${TARGET_PATH}/.env
+                                    echo '✅ .env文件权限设置完成'
+                                fi
+                            "
+                            
+                            # 第二步：拷贝scripts/deploy.sh到目标服务器的~/nexus-backend/deploy.sh并执行
+                            echo "📤 第二步：拷贝scripts/deploy.sh到~/nexus-backend/deploy.sh..."
+                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY} scripts/deploy.sh ${TARGET_USER}@${TARGET_HOST}:${TARGET_PATH}/deploy.sh
+                            echo "✅ scripts/deploy.sh已拷贝到 ${TARGET_PATH}/deploy.sh"
+                            
+                            # 设置deploy.sh脚本权限
+                            echo "🔧 设置deploy.sh脚本权限..."
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${TARGET_USER}@${TARGET_HOST} "
+                                chmod +x ${TARGET_PATH}/deploy.sh && \
+                                chown ${TARGET_USER}:${TARGET_USER} ${TARGET_PATH}/deploy.sh
+                                echo '✅ deploy.sh脚本权限设置完成'
+                            "
+                            
+                            # 第三步：在远程服务器上进行Docker登录
+                            echo "🔐 第三步：在远程服务器上进行Docker登录..."
+                        '''
+                        
+                        // 使用Docker凭据在远程服务器上登录
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: env.DOCKER_CREDENTIALS_ID,
+                                usernameVariable: 'DOCKER_USERNAME',
+                                passwordVariable: 'DOCKER_PASSWORD'
+                            )
+                        ]) {
+                            sh '''
+                                # 重新设置目标服务器信息（在新的sh块中）
+                                TARGET_HOST="${DEPLOY_SERVER_HOST}"
+                                TARGET_USER="${DEPLOY_SERVER_USER}"
+                                TARGET_PATH="/home/${DEPLOY_SERVER_USER}/nexus-backend"
+                                
+                                # 在远程服务器上执行Docker登录
+                                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${TARGET_USER}@${TARGET_HOST} "
+                                    echo '🔐 登录到Docker Registry...'
+                                    echo '${DOCKER_PASSWORD}' | docker login ${DOCKER_REGISTRY} -u '${DOCKER_USERNAME}' --password-stdin
+                                    echo '✅ Docker登录成功'
+                                "
+                            '''
+                        }
+                        
+                        sh '''
+                            # 重新设置目标服务器信息（在新的sh块中）
+                            TARGET_HOST="${DEPLOY_SERVER_HOST}"
+                            TARGET_USER="${DEPLOY_SERVER_USER}"
+                            TARGET_PATH="/home/${DEPLOY_SERVER_USER}/nexus-backend"
+                            
+                            # 第四步：执行部署脚本
+                            echo "🚀 第四步：执行部署脚本..."
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${TARGET_USER}@${TARGET_HOST} "
+                                cd ${TARGET_PATH} && \
+                                ./deploy.sh
+                            "
+                            
+                            echo "✅ 远程部署完成！"
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('部署通知') {
+            steps {
+                script {
+                    echo "📢 发送部署通知..."
+                    
+                    // 安全地获取Git提交信息
+                    def gitCommit = "unknown"
+                    try {
+                        gitCommit = sh(
+                            script: '''
+                                git config --global --add safe.directory "$(pwd)" || true
+                                git rev-parse --short HEAD 2>/dev/null || echo "unknown"
+                            ''', 
+                            returnStdout: true
+                        ).trim()
+                    } catch (Exception e) {
+                        echo "获取Git提交信息失败: ${e.getMessage()}"
+                        gitCommit = "unknown"
+                    }
+                    
+                    def deployInfo = """
+                    🚀 **部署信息**
+                    - 项目: nexus-backend
+                    - 环境: ${params.DEPLOY_ENVIRONMENT}
+                    - 服务器: ${DEPLOY_SERVER_HOST}
+                    - 分支: ${env.BRANCH_NAME ?: 'unknown'}
+                    - 构建号: ${env.BUILD_NUMBER}
+                    - 镜像: ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}
+                    - 提交: ${gitCommit}
+                    - 时间: ${new Date().format('yyyy-MM-dd HH:mm:ss')}
+                    """
+                    
+                    echo deployInfo
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                echo "🧹 执行清理操作..."
+                try {
+                    // 设置Docker配置目录
+                    sh 'export DOCKER_CONFIG=/tmp/.docker'
+                    
+                    // 登出Docker Registry
+                    sh "docker logout ${DOCKER_REGISTRY} || true"
+                    
+                    // 清理本地镜像
+                    sh "docker rmi ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG} || true"
+                    sh "docker rmi ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest || true"
+                    
+                    // 清理Docker系统
+                    sh "docker system prune -f || true"
+                    
+                    // 清理构建缓存
+                    sh "docker builder prune -f || true"
+                    
+                    // 清理临时Docker配置目录
+                    sh "rm -rf /tmp/.docker || true"
+                    
+                } catch (Exception e) {
+                    echo "⚠️ 清理过程中出现错误: ${e.getMessage()}"
+                }
+            }
+        }
+        
+        success {
+            script {
+                // 获取分支名称（与推送阶段相同的逻辑）
+                def branchName = ""
+                try {
+                    if (env.BRANCH_NAME) {
+                        branchName = env.BRANCH_NAME
+                    } else if (env.GIT_BRANCH) {
+                        branchName = env.GIT_BRANCH
+                    } else {
+                        branchName = sh(
+                            script: '''
+                                git config --global --add safe.directory "$(pwd)" || true
+                                git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "master"
+                            ''', 
+                            returnStdout: true
+                        ).trim()
+                    }
+                    
+                    if (branchName && branchName.startsWith('origin/')) {
+                        branchName = branchName.replace('origin/', '')
+                    }
+                    
+                    if (!branchName || branchName.trim().isEmpty()) {
+                        branchName = "master"
+                    }
+                } catch (Exception e) {
+                    branchName = "master"
+                }
+                
+                def isMainBranch = (branchName == "main" || branchName == "master")
+                
+                echo "✅ 🎉 流水线执行成功！"
+                echo "🌿 当前分支: ${branchName}"
+                echo "📦 镜像已推送: ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}"
+                if (isMainBranch) {
+                    echo "🔗 latest镜像地址: ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest"
+                }
+                echo "⏱️ 构建耗时: ${currentBuild.durationString}"
+                
+                // 设置构建描述
+                currentBuild.description = "✅ 成功构建并推送镜像 ${IMAGE_TAG} (${branchName})"
+            }
+        }
+        
+        failure {
+            script {
+                echo "❌ 💥 流水线执行失败！"
+                echo "📋 请检查构建日志获取详细错误信息"
+                echo "🔍 失败阶段: ${env.STAGE_NAME ?: '未知'}"
+                
+                // 设置构建描述
+                currentBuild.description = "❌ 构建失败 - ${env.STAGE_NAME ?: '未知阶段'}"
+            }
+        }
+        
+        unstable {
+            script {
+                echo "⚠️ 流水线执行不稳定（可能是测试失败或安全扫描发现问题）"
+                currentBuild.description = "⚠️ 构建不稳定 - 请检查测试和扫描结果"
+            }
+        }
+        
+        aborted {
+            script {
+                echo "🛑 流水线执行被中止"
+                currentBuild.description = "🛑 构建被中止"
+            }
+        }
+    }
+}
