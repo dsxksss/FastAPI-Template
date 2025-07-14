@@ -1,4 +1,5 @@
-from typing import Any, TypeVar, Optional, Union, Callable
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from fastapi import HTTPException
 from tortoise.expressions import Q
@@ -23,11 +24,11 @@ class BaseService:
         self,
         page: int = 1,
         page_size: int = 10,
-        search_filters: Optional[Q] = None,
-        order: Optional[list[str]] = None,
-        exclude_fields: Optional[list[str]] = None,
+        search_filters: Q | None = None,
+        order: list[str] | None = None,
+        exclude_fields: list[str] | None = None,
         include_m2m: bool = False,
-        transform_func: Optional[Callable] = None,
+        transform_func: Callable | None = None,
     ) -> SuccessExtra:
         """获取分页列表 - 统一版本
 

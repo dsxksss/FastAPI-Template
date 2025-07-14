@@ -1,6 +1,7 @@
 import json
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional, Callable
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -12,7 +13,7 @@ class CacheManager:
     """Redis缓存管理器"""
 
     def __init__(self):
-        self.redis: Optional[redis.Redis] = None
+        self.redis: redis.Redis | None = None
         self._connection_pool = None
 
     async def connect(self):
@@ -40,7 +41,7 @@ class CacheManager:
             self.redis = None
             logger.info("Redis连接已断开")
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """获取缓存值"""
         if not self.redis:
             return None
@@ -54,7 +55,7 @@ class CacheManager:
             logger.error(f"获取缓存失败 key={key}: {str(e)}")
             return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """设置缓存值"""
         if not self.redis:
             return False
@@ -126,7 +127,7 @@ class CacheManager:
 cache_manager = CacheManager()
 
 
-def cached(prefix: str, ttl: Optional[int] = None, key_func: Optional[Callable] = None):
+def cached(prefix: str, ttl: int | None = None, key_func: Callable | None = None):
     """缓存装饰器
 
     Args:
