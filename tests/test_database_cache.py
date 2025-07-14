@@ -4,7 +4,7 @@ import pytest
 from httpx import AsyncClient
 
 from src.utils.cache import cache_manager, clear_user_cache
-from src.controllers.user import user_controller
+from src.repositories.user import user_repository
 from src.schemas.users import UserCreate
 
 
@@ -30,13 +30,13 @@ class TestDatabaseIntegration:
             is_superuser=False
         )
         
-        created_user = await user_controller.create_user(obj_in=user_data)
+        created_user = await user_repository.create_user(obj_in=user_data)
         assert created_user is not None
         assert created_user.username == "db_test_user"
         assert created_user.email == "db_test@test.com"
         
         # 读取用户
-        retrieved_user = await user_controller.get(id=created_user.id)
+        retrieved_user = await user_repository.get(id=created_user.id)
         assert retrieved_user is not None
         assert retrieved_user.username == "db_test_user"
         
@@ -51,16 +51,20 @@ class TestDatabaseIntegration:
             role_ids=[]
         )
         
-        updated_user = await user_controller.update(id=created_user.id, obj_in=update_data)
+        updated_user = await user_repository.update(id=created_user.id, obj_in=update_data)
         assert updated_user.username == "db_test_user_updated"
         assert updated_user.email == "db_test_updated@test.com"
         
         # 删除用户
-        await user_controller.remove(id=created_user.id)
+        await user_repository.remove(id=created_user.id)
         
         # 验证删除
-        deleted_user = await user_controller.get(id=created_user.id)
-        assert deleted_user is None
+        try:
+            deleted_user = await user_repository.get(id=created_user.id)
+            assert False, "应该抛出DoesNotExist异常"
+        except Exception:
+            # 用户已被删除，期望抛出异常
+            pass
 
     async def test_user_authentication_flow(self):
         """测试用户认证流程"""
@@ -73,7 +77,7 @@ class TestDatabaseIntegration:
             is_superuser=False
         )
         
-        created_user = await user_controller.create_user(obj_in=user_data)
+        created_user = await user_repository.create_user(obj_in=user_data)
         
         # 测试认证
         from src.schemas.login import CredentialsSchema
@@ -82,7 +86,7 @@ class TestDatabaseIntegration:
             password="Test123456"
         )
         
-        authenticated_user = await user_controller.authenticate(credentials)
+        authenticated_user = await user_repository.authenticate(credentials)
         assert authenticated_user is not None
         assert authenticated_user.id == created_user.id
         
@@ -93,13 +97,13 @@ class TestDatabaseIntegration:
         )
         
         with pytest.raises(Exception):
-            await user_controller.authenticate(wrong_credentials)
+            await user_repository.authenticate(wrong_credentials)
 
     async def test_database_transaction_rollback(self):
         """测试数据库事务回滚"""
         from tortoise import transactions
         
-        initial_count = await user_controller.model.all().count()
+        initial_count = await user_repository.model.all().count()
         
         try:
             async with transactions.in_transaction():
@@ -112,7 +116,7 @@ class TestDatabaseIntegration:
                     is_superuser=False
                 )
                 
-                await user_controller.create_user(obj_in=user_data)
+                await user_repository.create_user(obj_in=user_data)
                 
                 # 人为抛出异常触发回滚
                 raise Exception("Test rollback")
@@ -120,7 +124,7 @@ class TestDatabaseIntegration:
             pass
         
         # 验证回滚后用户数量未增加
-        final_count = await user_controller.model.all().count()
+        final_count = await user_repository.model.all().count()
         assert final_count == initial_count
 
 

@@ -10,7 +10,7 @@ class TestAuthAPI:
     async def test_login_success(self, async_client: AsyncClient):
         """测试成功登录"""
         # 先创建用户
-        from src.controllers.user import user_controller
+        from src.repositories.user import user_repository
         from src.schemas.users import UserCreate
         
         user_data = UserCreate(
@@ -21,7 +21,7 @@ class TestAuthAPI:
             is_superuser=False
         )
         
-        await user_controller.create_user(obj_in=user_data)
+        await user_repository.create_user(obj_in=user_data)
         
         # 测试登录
         response = await async_client.post(
@@ -57,7 +57,7 @@ class TestAuthAPI:
 
     async def test_login_inactive_user(self, async_client: AsyncClient):
         """测试非激活用户登录"""
-        from src.controllers.user import user_controller
+        from src.repositories.user import user_repository
         from src.schemas.users import UserCreate
         
         # 创建非激活用户
@@ -69,7 +69,7 @@ class TestAuthAPI:
             is_superuser=False
         )
         
-        await user_controller.create_user(obj_in=user_data)
+        await user_repository.create_user(obj_in=user_data)
         
         # 尝试登录
         response = await async_client.post(
@@ -85,7 +85,7 @@ class TestAuthAPI:
     async def test_refresh_token_success(self, async_client: AsyncClient):
         """测试刷新令牌成功"""
         # 先登录获取令牌
-        from src.controllers.user import user_controller
+        from src.repositories.user import user_repository
         from src.schemas.users import UserCreate
         
         user_data = UserCreate(
@@ -96,7 +96,7 @@ class TestAuthAPI:
             is_superuser=False
         )
         
-        await user_controller.create_user(obj_in=user_data)
+        await user_repository.create_user(obj_in=user_data)
         
         # 登录
         login_response = await async_client.post(
@@ -109,6 +109,10 @@ class TestAuthAPI:
         
         login_data = login_response.json()["data"]
         refresh_token = login_data["refresh_token"]
+        
+        # 等待1秒确保时间戳不同
+        import asyncio
+        await asyncio.sleep(1)
         
         # 使用刷新令牌获取新的令牌对
         refresh_response = await async_client.post(
@@ -140,7 +144,7 @@ class TestAuthAPI:
     async def test_refresh_token_access_token_used(self, async_client: AsyncClient):
         """测试用访问令牌进行刷新操作"""
         # 先登录获取令牌
-        from src.controllers.user import user_controller
+        from src.repositories.user import user_repository
         from src.schemas.users import UserCreate
         
         user_data = UserCreate(
@@ -151,7 +155,7 @@ class TestAuthAPI:
             is_superuser=False
         )
         
-        await user_controller.create_user(obj_in=user_data)
+        await user_repository.create_user(obj_in=user_data)
         
         # 登录
         login_response = await async_client.post(

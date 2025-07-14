@@ -1,4 +1,4 @@
-"""文件映射控制器 - 管理文件ID和文件信息的映射关系"""
+"""文件映射仓库 - 管理文件ID和文件信息的映射关系"""
 
 from core.crud import CRUDBase
 from models.admin import FileMapping
@@ -30,10 +30,10 @@ class FileMappingUpdate:
     pass
 
 
-class FileMappingController(
+class FileMappingRepository(
     CRUDBase[FileMapping, FileMappingCreate, FileMappingUpdate]
 ):
-    """文件映射控制器"""
+    """文件映射仓库"""
 
     async def create_file_mapping(
         self,
@@ -77,4 +77,4 @@ class FileMappingController(
 
 
 # 全局实例
-file_mapping_controller = FileMappingController(FileMapping)
+file_mapping_repository = FileMappingRepository(FileMapping)

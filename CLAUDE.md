@@ -113,15 +113,15 @@ docker-compose logs -f app
 │  │ Business Logic (src/services/)                      │    │
 │  │ • 业务规则验证和处理                                    │    │
 │  │ • 权限检查和业务安全                                    │    │
-│  │ • 跨Controller的复杂操作                               │    │
+│  │ • 跨Repository的复杂操作                               │    │
 │  │ • 统一异常处理和日志记录                                │    │
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                    Controller Layer                        │
+│                   Repository Layer                         │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │ Data Access (src/controllers/)                      │    │
+│  │ Data Access (src/repositories/)                     │    │
 │  │ • CRUD操作和数据库查询                                  │    │
 │  │ • 简单的查询条件构建                                    │    │
 │  │ • 数据模型转换                                         │    │
@@ -168,7 +168,7 @@ src/
 │   ├── user_service.py # 用户业务逻辑
 │   └── file_service.py # 文件业务逻辑
 │
-├── controllers/         # 🗄️ 数据访问层
+├── repositories/        # 🗄️ 数据访问层 (Repository模式)
 │   ├── __init__.py
 │   ├── user.py         # 用户数据操作
 │   ├── role.py         # 角色数据操作
@@ -228,7 +228,7 @@ src/
 
 1. **定义数据模型** (`src/models/`)
 2. **创建Pydantic Schema** (`src/schemas/`)
-3. **实现Controller数据层** (`src/controllers/`)
+3. **实现Repository数据层** (`src/repositories/`)
 4. **编写Service业务层** (`src/services/`)
 5. **添加API路由** (`src/api/v1/`)
 6. **生成数据库迁移**
@@ -278,15 +278,15 @@ class ProductOut(ProductCreate):
     updated_at: datetime
 ```
 
-#### 3. 实现Controller (`src/controllers/product.py`)
+#### 3. 实现Repository (`src/repositories/product.py`)
 
 ```python
 from core.crud import CRUDBase
 from models.admin import Product
 from schemas.products import ProductCreate, ProductUpdate
 
-class ProductController(CRUDBase[Product, ProductCreate, ProductUpdate]):
-    """产品数据访问层"""
+class ProductRepository(CRUDBase[Product, ProductCreate, ProductUpdate]):
+    """产品数据访问层 (Repository模式)"""
     
     async def get_products_by_category(self, category_id: int):
         """根据分类获取产品"""
@@ -300,14 +300,14 @@ class ProductController(CRUDBase[Product, ProductCreate, ProductUpdate]):
         ).all()
 
 # 全局实例
-product_controller = ProductController(Product)
+product_repository = ProductRepository(Product)
 ```
 
 #### 4. 编写Service (`src/services/product_service.py`)
 
 ```python
 from services.base_service import BaseService, permission_service
-from controllers.product import product_controller
+from repositories.product import product_repository
 from schemas.products import ProductCreate, ProductUpdate
 from schemas.base import Success, Fail
 from models.admin import User
@@ -316,7 +316,7 @@ class ProductService(BaseService):
     """产品业务逻辑层"""
     
     def __init__(self):
-        super().__init__(product_controller)
+        super().__init__(product_repository)
     
     async def create_product(self, data: ProductCreate, current_user: User) -> Success:
         """创建产品 - 需要管理员权限"""
@@ -327,7 +327,7 @@ class ProductService(BaseService):
                 return permission_error
             
             # 业务逻辑验证
-            if await product_controller.model.filter(name=data.name).exists():
+            if await product_repository.model.filter(name=data.name).exists():
                 return Fail(msg="产品名称已存在")
             
             # 创建产品
@@ -343,7 +343,7 @@ class ProductService(BaseService):
     async def search_products(self, keyword: str) -> Success:
         """搜索产品"""
         try:
-            products = await product_controller.search_products(keyword)
+            products = await product_repository.search_products(keyword)
             return Success(data=products, msg="搜索成功")
         except Exception as e:
             self.logger.error(f"搜索产品失败: {str(e)}")

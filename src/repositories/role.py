@@ -3,7 +3,7 @@ from models.admin import Api, Menu, Role
 from schemas.roles import RoleCreate, RoleUpdate
 
 
-class RoleController(CRUDBase[Role, RoleCreate, RoleUpdate]):
+class RoleRepository(CRUDBase[Role, RoleCreate, RoleUpdate]):
     def __init__(self):
         super().__init__(model=Role)
 
@@ -30,4 +30,4 @@ class RoleController(CRUDBase[Role, RoleCreate, RoleUpdate]):
                 await role.apis.add(api_obj)
 
 
-role_controller = RoleController()
+role_repository = RoleRepository()

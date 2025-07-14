@@ -11,10 +11,10 @@ from schemas.login import CredentialsSchema
 from schemas.users import UserCreate, UserUpdate
 from utils.password import get_password_hash, verify_password
 
-from .role import role_controller
+from .role import role_repository
 
 
-class UserController(CRUDBase[User, UserCreate, UserUpdate]):
+class UserRepository(CRUDBase[User, UserCreate, UserUpdate]):
     def __init__(self):
         super().__init__(model=User)
 
@@ -48,7 +48,7 @@ class UserController(CRUDBase[User, UserCreate, UserUpdate]):
     async def update_roles(self, user: User, role_ids: list[int]) -> None:
         await user.roles.clear()
         for role_id in role_ids:
-            role_obj = await role_controller.get(id=role_id)
+            role_obj = await role_repository.get(id=role_id)
             await user.roles.add(role_obj)
 
     async def reset_password(self, user_id: int) -> str:
@@ -69,4 +69,4 @@ class UserController(CRUDBase[User, UserCreate, UserUpdate]):
         return password
 
 
-user_controller = UserController()
+user_repository = UserRepository()

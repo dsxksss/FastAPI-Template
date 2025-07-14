@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from tortoise.expressions import Q
 
-from controllers.api import api_controller
+from repositories.api import api_repository
 from schemas import Success, SuccessExtra
 from schemas.apis import *
 
@@ -23,7 +23,7 @@ async def list_api(
         q &= Q(summary__contains=summary)
     if tags:
         q &= Q(tags__contains=tags)
-    total, api_objs = await api_controller.list(
+    total, api_objs = await api_repository.list(
         page=page, page_size=page_size, search=q, order=["tags", "id"]
     )
     data = [await obj.to_dict() for obj in api_objs]
@@ -34,7 +34,7 @@ async def list_api(
 async def get_api(
     id: int = Query(..., description="Api"),
 ):
-    api_obj = await api_controller.get(id=id)
+    api_obj = await api_repository.get(id=id)
     data = await api_obj.to_dict()
     return Success(data=data)
 
@@ -43,7 +43,7 @@ async def get_api(
 async def create_api(
     api_in: ApiCreate,
 ):
-    await api_controller.create(obj_in=api_in)
+    await api_repository.create(obj_in=api_in)
     return Success(msg="Created Successfully")
 
 
@@ -51,7 +51,7 @@ async def create_api(
 async def update_api(
     api_in: ApiUpdate,
 ):
-    await api_controller.update(id=api_in.id, obj_in=api_in)
+    await api_repository.update(id=api_in.id, obj_in=api_in)
     return Success(msg="Update Successfully")
 
 
@@ -59,11 +59,11 @@ async def update_api(
 async def delete_api(
     api_id: int = Query(..., description="ApiID"),
 ):
-    await api_controller.remove(id=api_id)
+    await api_repository.remove(id=api_id)
     return Success(msg="Deleted Success")
 
 
 @router.post("/refresh", summary="刷新API列表")
 async def refresh_api():
-    await api_controller.refresh_api()
+    await api_repository.refresh_api()
     return Success(msg="OK")

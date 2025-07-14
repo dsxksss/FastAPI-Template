@@ -7,7 +7,7 @@ from models.admin import Dept, DeptClosure
 from schemas.depts import DeptCreate, DeptUpdate
 
 
-class DeptController(CRUDBase[Dept, DeptCreate, DeptUpdate]):
+class DeptRepository(CRUDBase[Dept, DeptCreate, DeptUpdate]):
     def __init__(self):
         super().__init__(model=Dept)
 
@@ -94,4 +94,4 @@ class DeptController(CRUDBase[Dept, DeptCreate, DeptUpdate]):
         await DeptClosure.filter(descendant=dept_id).delete()
 
 
-dept_controller = DeptController()
+dept_repository = DeptRepository()

@@ -16,8 +16,8 @@ T = TypeVar("T", bound=Model)
 class BaseService:
     """基础服务类 - 统一公共逻辑"""
 
-    def __init__(self, controller: CRUDBase):
-        self.controller = controller
+    def __init__(self, repository: CRUDBase):
+        self.repository = repository
         self.logger = logger
 
     async def get_paginated_list(
@@ -45,7 +45,7 @@ class BaseService:
             SuccessExtra: 分页响应
         """
         try:
-            total, items = await self.controller.list(
+            total, items = await self.repository.list(
                 page=page,
                 page_size=page_size,
                 search=search_filters or Q(),
@@ -88,7 +88,7 @@ class BaseService:
             Success: 成功响应
         """
         try:
-            item = await self.controller.get(item_id)
+            item = await self.repository.get(item_id)
             if not item:
                 raise HTTPException(status_code=404, detail=not_found_msg)
 
@@ -120,7 +120,7 @@ class BaseService:
             Success: 成功响应
         """
         try:
-            item = await self.controller.create(item_data)
+            item = await self.repository.create(item_data)
             data = await item.to_dict(exclude_fields=exclude_fields or [])
             return Success(data=data, msg=success_msg)
 
@@ -149,11 +149,11 @@ class BaseService:
             Success: 成功响应
         """
         try:
-            item = await self.controller.get(item_id)
+            item = await self.repository.get(item_id)
             if not item:
                 raise HTTPException(status_code=404, detail=not_found_msg)
 
-            updated_item = await self.controller.update(item_id, item_data)
+            updated_item = await self.repository.update(item_id, item_data)
             data = await updated_item.to_dict(exclude_fields=exclude_fields or [])
             return Success(data=data, msg=success_msg)
 
@@ -180,11 +180,11 @@ class BaseService:
             Success: 成功响应
         """
         try:
-            item = await self.controller.get(item_id)
+            item = await self.repository.get(item_id)
             if not item:
                 raise HTTPException(status_code=404, detail=not_found_msg)
 
-            await self.controller.remove(item_id)
+            await self.repository.remove(item_id)
             return Success(msg=success_msg)
 
         except HTTPException:

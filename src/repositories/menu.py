@@ -5,7 +5,7 @@ from models.admin import Menu
 from schemas.menus import MenuCreate, MenuUpdate
 
 
-class MenuController(CRUDBase[Menu, MenuCreate, MenuUpdate]):
+class MenuRepository(CRUDBase[Menu, MenuCreate, MenuUpdate]):
     def __init__(self):
         super().__init__(model=Menu)
 
@@ -13,4 +13,4 @@ class MenuController(CRUDBase[Menu, MenuCreate, MenuUpdate]):
         return await self.model.filter(path=path).first()
 
 
-menu_controller = MenuController()
+menu_repository = MenuRepository()

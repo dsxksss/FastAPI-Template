@@ -11,8 +11,8 @@ from tortoise.expressions import Q
 
 from api import api_router
 from api.v1.base.base import limiter
-from controllers.api import api_controller
-from controllers.user import UserCreate, user_controller
+from repositories.api import api_repository
+from repositories.user import UserCreate, user_repository
 from core.exceptions import (
     DoesNotExist,
     DoesNotExistHandle,
@@ -80,9 +80,9 @@ def register_routers(app: FastAPI, prefix: str = "/api"):
 
 async def init_superuser():
     logger.info("🔧 开始初始化超级管理员用户...")
-    user = await user_controller.model.exists()
+    user = await user_repository.model.exists()
     if not user:
-        await user_controller.create_user(
+        await user_repository.create_user(
             UserCreate(
                 username="admin",
                 email="admin@admin.com",
@@ -200,9 +200,9 @@ async def init_menus():
 
 async def init_apis():
     logger.info("🔧 开始初始化API数据...")
-    apis = await api_controller.model.exists()
+    apis = await api_repository.model.exists()
     if not apis:
-        await api_controller.refresh_api()
+        await api_repository.refresh_api()
         api_count = await Api.all().count()
         logger.info(f"✅ API数据初始化成功 - API数量: {api_count}")
     else:

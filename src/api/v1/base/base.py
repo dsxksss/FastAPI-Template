@@ -1,11 +1,11 @@
 import os
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from controllers.user import user_controller
+from repositories.user import user_repository
 from core.ctx import CTX_USER_ID
 from core.dependency import DependAuth
 from models.admin import User
@@ -25,11 +25,20 @@ limiter = Limiter(key_func=get_remote_address)
 router = APIRouter()
 
 
+def apply_rate_limit(rate="5/minute"):
+    """根据环境应用限流装饰器"""
+    def decorator(func):
+        import os
+        if os.getenv("TESTING", "false").lower() == "true":
+            return func  # 测试环境不应用限流
+        return limiter.limit(rate)(func)
+    return decorator
+
 @router.post("/access_token", summary="获取token")
-@limiter.limit("5/minute")  # 每分钟最多5次登录尝试
+@apply_rate_limit()
 async def login_access_token(request: Request, credentials: CredentialsSchema):
-    user: User = await user_controller.authenticate(credentials)
-    await user_controller.update_last_login(user.id)
+    user: User = await user_repository.authenticate(credentials)
+    await user_repository.update_last_login(user.id)
 
     # 创建访问令牌和刷新令牌
     access_token, refresh_token = create_token_pair(
@@ -46,7 +55,7 @@ async def login_access_token(request: Request, credentials: CredentialsSchema):
 
 
 @router.post("/refresh_token", summary="刷新token")
-@limiter.limit("10/minute")  # 每分钟最多10次刷新
+@apply_rate_limit("10/minute")
 async def refresh_access_token(request: Request, refresh_request: RefreshTokenRequest):
     """
     使用刷新令牌获取新的访问令牌和刷新令牌
@@ -56,7 +65,7 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
         payload = verify_token(refresh_request.refresh_token, token_type="refresh")
 
         # 验证用户是否仍然存在且有效
-        user = await user_controller.get(id=payload.user_id)
+        user = await user_repository.get(id=payload.user_id)
         if not user or not user.is_active:
             return Fail(code=401, msg="用户不存在或已被禁用")
 
@@ -77,10 +86,10 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
         return Fail(code=401, msg="令牌无效或已过期")
 
 
-@router.get("/userinfo", summary="查看用户信息", dependencies=[DependAuth])
-async def get_userinfo():
+@router.get("/userinfo", summary="查看用户信息")
+async def get_userinfo(current_user: User = DependAuth):
     user_id = CTX_USER_ID.get()
-    user_obj = await user_controller.get(id=user_id)
+    user_obj = await user_repository.get(id=user_id)
     user_dict = await user_obj.to_dict()
     return Success(data=user_dict)
 

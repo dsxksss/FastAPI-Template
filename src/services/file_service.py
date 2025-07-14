@@ -5,8 +5,8 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
-from controllers.file_mapping import file_mapping_controller
-from controllers.user import user_controller
+from repositories.file_mapping import file_mapping_repository
+from repositories.user import user_repository
 from core.ctx import CTX_USER_ID
 from log import logger
 from schemas.base import Success
@@ -150,7 +150,7 @@ class FileService:
         if not user_id:
             raise HTTPException(status_code=401, detail="用户未认证")
 
-        user = await user_controller.get(user_id)
+        user = await user_repository.get(user_id)
         if not user:
             raise HTTPException(status_code=404, detail="用户不存在")
 
@@ -216,7 +216,7 @@ class FileService:
             file_size = file.size if hasattr(file, "size") else None
 
             # 保存文件映射
-            await file_mapping_controller.create_file_mapping(
+            await file_mapping_repository.create_file_mapping(
                 file_id=file_id,
                 original_name=file.filename,
                 file_type=file_type,

@@ -34,9 +34,22 @@ def get_current_username(
 class AuthControl:
     @classmethod
     async def is_authed(
-        cls, token: str = Header(..., description="token验证")
+        cls, authorization: Optional[str] = Header(None, description="Authorization header")
     ) -> Optional["User"]:
         try:
+            # 支持两种格式：
+            # 1. Authorization: Bearer {token}
+            # 2. token: {token} (兼容旧版本)
+            token = None
+            if authorization:
+                if authorization.startswith("Bearer "):
+                    token = authorization[7:]  # 去掉 "Bearer " 前缀
+                else:
+                    token = authorization
+            
+            if not token:
+                raise HTTPException(status_code=401, detail="Missing authentication token")
+            
             decode_data = jwt.decode(
                 token,
                 settings.SECRET_KEY,

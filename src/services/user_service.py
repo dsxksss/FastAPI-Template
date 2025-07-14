@@ -2,8 +2,8 @@
 
 from tortoise.expressions import Q
 
-from controllers.dept import dept_controller
-from controllers.user import user_controller
+from repositories.dept import dept_repository
+from repositories.user import user_repository
 from schemas.base import Fail, Success, SuccessExtra
 from schemas.users import UserCreate, UserUpdate
 from services.base_service import BaseService
@@ -14,7 +14,7 @@ class UserService(BaseService):
     """用户服务类 - 专门处理用户相关业务逻辑"""
 
     def __init__(self):
-        super().__init__(user_controller)
+        super().__init__(user_repository)
 
     async def get_user_list(
         self,
@@ -32,7 +32,7 @@ class UserService(BaseService):
             )
 
             # 获取分页数据
-            total, items = await self.controller.list(
+            total, items = await self.repository.list(
                 page=page,
                 page_size=page_size,
                 search=search_filters,
@@ -52,7 +52,7 @@ class UserService(BaseService):
     async def get_user_detail(self, user_id: int) -> Success:
         """获取用户详情 - 带缓存"""
         try:
-            user_obj = await user_controller.get(id=user_id)
+            user_obj = await user_repository.get(id=user_id)
             if not user_obj:
                 return Fail(msg="用户不存在")
 
@@ -67,7 +67,7 @@ class UserService(BaseService):
         """创建用户 - 包含邮箱唯一性检查和角色分配"""
         try:
             # 检查邮箱是否已存在
-            existing_user = await user_controller.get_by_email(user_in.email)
+            existing_user = await user_repository.get_by_email(user_in.email)
             if existing_user:
                 return Fail(
                     code=400,
@@ -75,10 +75,10 @@ class UserService(BaseService):
                 )
 
             # 创建用户
-            new_user = await user_controller.create_user(obj_in=user_in)
+            new_user = await user_repository.create_user(obj_in=user_in)
 
             # 更新用户角色
-            await user_controller.update_roles(new_user, user_in.role_ids)
+            await user_repository.update_roles(new_user, user_in.role_ids)
 
             return Success(msg="Created Successfully")
 
@@ -90,10 +90,10 @@ class UserService(BaseService):
         """更新用户 - 包含角色更新和缓存清理"""
         try:
             # 更新用户基础信息
-            user = await user_controller.update(id=user_in.id, obj_in=user_in)
+            user = await user_repository.update(id=user_in.id, obj_in=user_in)
 
             # 更新用户角色
-            await user_controller.update_roles(user, user_in.role_ids)
+            await user_repository.update_roles(user, user_in.role_ids)
 
             # 清除相关缓存
             await clear_user_cache(user_in.id)
@@ -107,7 +107,7 @@ class UserService(BaseService):
     async def delete_user(self, user_id: int) -> Success:
         """删除用户 - 包含缓存清理"""
         try:
-            await user_controller.remove(id=user_id)
+            await user_repository.remove(id=user_id)
 
             # 清除相关缓存
             await clear_user_cache(user_id)
@@ -121,7 +121,7 @@ class UserService(BaseService):
     async def reset_user_password(self, user_id: int) -> Success:
         """重置用户密码"""
         try:
-            await user_controller.reset_password(user_id)
+            await user_repository.reset_password(user_id)
             return Success(msg="密码已重置")
 
         except Exception as e:
@@ -159,7 +159,7 @@ class UserService(BaseService):
             # 关联部门信息
             dept_id = user_dict.pop("dept_id", None)
             if dept_id:
-                dept_obj = await dept_controller.get(id=dept_id)
+                dept_obj = await dept_repository.get(id=dept_id)
                 user_dict["dept"] = await dept_obj.to_dict() if dept_obj else {}
             else:
                 user_dict["dept"] = {}

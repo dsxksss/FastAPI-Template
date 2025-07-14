@@ -113,12 +113,21 @@ class TestHealthEndpoints:
 
     async def test_api_root_documentation(self, async_client: AsyncClient):
         """测试API根路径和文档"""
+        # 获取设置中的基本认证信息
+        from src.settings.config import settings
+        import base64
+        
+        # 创建基本认证头
+        credentials = f"{settings.SWAGGER_UI_USERNAME}:{settings.SWAGGER_UI_PASSWORD}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        auth_headers = {"Authorization": f"Basic {encoded_credentials}"}
+        
         # 测试docs端点
-        docs_response = await async_client.get("/docs")
+        docs_response = await async_client.get("/docs", headers=auth_headers)
         assert docs_response.status_code == 200
         
         # 测试OpenAPI规范
-        openapi_response = await async_client.get("/openapi.json")
+        openapi_response = await async_client.get("/openapi.json", headers=auth_headers)
         assert openapi_response.status_code == 200
         
         openapi_data = openapi_response.json()

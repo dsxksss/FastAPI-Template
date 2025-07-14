@@ -54,7 +54,7 @@ class TestCRUDOperations:
         # 3. 更新用户
         update_data = {
             "id": user_id,
-            "username": "crud_test_user_updated",
+            "username": "crud_test_updated",
             "email": "crud_test_updated@test.com",
             "is_active": True,
             "is_superuser": False,
@@ -83,12 +83,12 @@ class TestCRUDOperations:
                 break
         
         assert updated_user is not None
-        assert updated_user["username"] == "crud_test_user_updated"
+        assert updated_user["username"] == "crud_test_updated"
         assert updated_user["email"] == "crud_test_updated@test.com"
         
         # 5. 删除用户
         delete_response = await async_client.delete(
-            f"/api/v1/users/delete/{user_id}",
+            f"/api/v1/users/delete?user_id={user_id}",
             headers=headers
         )
         
