@@ -1,6 +1,10 @@
+import os
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from controllers.user import user_controller
 from core.ctx import CTX_USER_ID
@@ -11,11 +15,15 @@ from schemas.login import CredentialsSchema, JWTOut, JWTPayload
 from settings import settings
 from utils.jwt import create_access_token
 
+# 创建限流器实例
+limiter = Limiter(key_func=get_remote_address)
+
 router = APIRouter()
 
 
 @router.post("/access_token", summary="获取token")
-async def login_access_token(credentials: CredentialsSchema):
+@limiter.limit("5/minute")  # 每分钟最多5次登录尝试
+async def login_access_token(request: Request, credentials: CredentialsSchema):
     user: User = await user_controller.authenticate(credentials)
     await user_controller.update_last_login(user.id)
     access_token_expires = timedelta(
@@ -43,6 +51,31 @@ async def get_userinfo():
     user_obj = await user_controller.get(id=user_id)
     user_dict = await user_obj.to_dict()
     return Success(data=user_dict)
+
+
+@router.get("/health", summary="健康检查")
+async def health_check():
+    """系统健康检查"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": settings.VERSION,
+        "environment": settings.APP_ENV,
+        "service": "FastAPI Backend Template"
+    }
+
+
+@router.get("/version", summary="版本信息")
+async def get_version():
+    """获取API版本信息"""
+    return {
+        "version": settings.VERSION,
+        "app_title": settings.APP_TITLE,
+        "project_name": settings.PROJECT_NAME,
+        "build": os.getenv("BUILD_NUMBER", "dev"),
+        "commit": os.getenv("GIT_COMMIT", "unknown"),
+        "python_version": os.getenv("PYTHON_VERSION", "3.11+")
+    }
 
 
 # @router.get("/usermenu", summary="查看用户菜单", dependencies=[DependAuth])

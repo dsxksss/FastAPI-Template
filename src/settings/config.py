@@ -127,17 +127,48 @@ class Settings(BaseSettings):
                 return {"default": []}
         return v
 
+    @field_validator("DB_PASSWORD")
+    @classmethod
+    def validate_db_password(cls, v):
+        """验证数据库密码"""
+        if not v and os.getenv("APP_ENV") == "production":
+            raise ValueError("生产环境必须设置数据库密码")
+        return v
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def validate_secret_key(cls, v):
+        """验证SECRET_KEY强度"""
+        if len(v) < 32:
+            raise ValueError("SECRET_KEY长度至少32字符")
+        return v
+
+    @field_validator("SWAGGER_UI_PASSWORD")
+    @classmethod
+    def validate_swagger_password(cls, v):
+        """验证Swagger访问密码"""
+        if not v:
+            raise ValueError("SWAGGER_UI_PASSWORD必须设置")
+        if len(v) < 8:
+            raise ValueError("Swagger访问密码长度至少8位")
+        return v
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # 配置验证
-        if not self.SECRET_KEY:
-            raise ValueError(
-                "SECRET_KEY 环境变量必须设置，请在.env文件中配置或使用: openssl rand -hex 32 生成"
-            )
-        if not self.SWAGGER_UI_PASSWORD:
-            raise ValueError(
-                "SWAGGER_UI_PASSWORD 环境变量必须设置，请在.env文件中配置Swagger访问密码"
-            )
+        # 额外的环境特定验证
+        if self.APP_ENV == "production":
+            self._validate_production_config()
+
+    def _validate_production_config(self):
+        """生产环境特定配置验证"""
+        if self.DEBUG:
+            raise ValueError("生产环境不能启用DEBUG模式")
+        
+        if self.DB_ENGINE == "sqlite":
+            raise ValueError("生产环境建议使用PostgreSQL而非SQLite")
+        
+        if "localhost" in self.CORS_ORIGINS:
+            raise ValueError("生产环境不应允许localhost的CORS访问")
 
 
 settings = Settings()

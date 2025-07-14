@@ -7,7 +7,11 @@ from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise.expressions import Q
 
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+
 from api import api_router
+from api.v1.base.base import limiter
 from controllers.api import api_controller
 from controllers.user import UserCreate, user_controller
 from core.exceptions import (
@@ -67,6 +71,9 @@ def register_exceptions(app: FastAPI):
     app.add_exception_handler(
         ResponseValidationError, ResponseValidationHandle
     )
+    # 注册限流异常处理
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 def register_routers(app: FastAPI, prefix: str = "/api"):
