@@ -35,10 +35,22 @@ jobs:
         uv run ruff format --check src/ || echo "Code formatting issues found"
 
     - name: Type check with mypy
+      env:
+        SECRET_KEY: test_secret_key_for_testing_only_32_chars_long
+        SWAGGER_UI_PASSWORD: test_password_123
+        DB_PASSWORD: test_db_password
+        APP_ENV: testing
+        DEBUG: "True"
       run: |
         uv run mypy src/ || true  # Allow mypy to fail for now
 
     - name: Test with pytest
+      env:
+        SECRET_KEY: test_secret_key_for_testing_only_32_chars_long
+        SWAGGER_UI_PASSWORD: test_password_123
+        DB_PASSWORD: test_db_password
+        APP_ENV: testing
+        DEBUG: "True"
       run: |
         uv run pytest tests/test_core_functionality.py tests/test_simple_jwt.py -v --cov=src --cov-report=xml --cov-report=html --cov-report=term-missing
         
@@ -75,6 +87,12 @@ jobs:
       run: uv sync --dev
 
     - name: Run security checks with bandit
+      env:
+        SECRET_KEY: test_secret_key_for_testing_only_32_chars_long
+        SWAGGER_UI_PASSWORD: test_password_123
+        DB_PASSWORD: test_db_password
+        APP_ENV: testing
+        DEBUG: "True"
       run: |
         uv run bandit -r src/ || true  # Allow bandit to fail for now
 

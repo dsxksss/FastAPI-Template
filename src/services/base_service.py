@@ -1,4 +1,4 @@
-from typing import Any, TypeVar, Union, Callable, Optional
+from typing import Any, TypeVar, Optional, Union, Callable
 
 from fastapi import HTTPException
 from tortoise.expressions import Q

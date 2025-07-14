@@ -139,7 +139,9 @@ class Settings(BaseSettings):
     @classmethod
     def validate_db_password(cls, v):
         """验证数据库密码"""
-        if not v and os.getenv("APP_ENV") == "production":
+        app_env = os.getenv("APP_ENV", "development")
+        # 测试和开发环境允许空密码
+        if not v and app_env == "production":
             raise ValueError("生产环境必须设置数据库密码")
         return v
 
@@ -155,6 +157,10 @@ class Settings(BaseSettings):
     @classmethod
     def validate_swagger_password(cls, v):
         """验证Swagger访问密码"""
+        import os
+        # 测试环境允许空密码
+        if os.getenv("APP_ENV") == "testing":
+            return v or "test_password"
         if not v:
             raise ValueError("SWAGGER_UI_PASSWORD必须设置")
         if len(v) < 8:

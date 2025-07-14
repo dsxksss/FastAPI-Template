@@ -1,6 +1,6 @@
 import json
 from functools import wraps
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 import redis.asyncio as redis
 
@@ -126,7 +126,7 @@ class CacheManager:
 cache_manager = CacheManager()
 
 
-def cached(prefix: str, ttl: Optional[int] = None, key_func: Optional[callable] = None):
+def cached(prefix: str, ttl: Optional[int] = None, key_func: Optional[Callable] = None):
     """缓存装饰器
 
     Args:
