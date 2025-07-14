@@ -203,3 +203,6 @@ Thumbs.db
 *.log
 logs/*.log
 !logs/.gitkeep
+
+# Documentation files (internal use only)
+IMPROVEMENT_ROADMAP.md
