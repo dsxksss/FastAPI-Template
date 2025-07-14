@@ -1,10 +1,7 @@
 """文件服务层 - 统一文件处理业务逻辑"""
 
-import os
 import uuid
 from pathlib import Path
-from typing import Dict, Optional, Set
-from urllib.parse import urljoin
 
 from fastapi import HTTPException, UploadFile
 
@@ -18,7 +15,7 @@ from schemas.base import Success
 MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
 UPLOADS_DIR = "uploads"
 
-ALLOWED_EXTENSIONS: Set[str] = {
+ALLOWED_EXTENSIONS: set[str] = {
     # 文档类型
     ".txt",
     ".pdf",
@@ -59,7 +56,7 @@ ALLOWED_EXTENSIONS: Set[str] = {
     ".7z",
 }
 
-DANGEROUS_EXTENSIONS: Set[str] = {
+DANGEROUS_EXTENSIONS: set[str] = {
     ".exe",
     ".bat",
     ".cmd",
@@ -115,18 +112,16 @@ class FileService:
             # 生成文件ID和保存路径
             file_id = str(uuid.uuid4())
             file_path = self.uploads_dir / f"{file_id}_{safe_filename}"
-            
+
             # 保存文件到本地
             with open(file_path, "wb") as f:
                 f.write(content)
-            
+
             self.logger.info(f"文件已保存: {file_path}")
 
             # 保存文件映射信息
             await self._save_file_mapping(
-                {"file_id": file_id, "file_path": str(file_path)},
-                file,
-                user.id
+                {"file_id": file_id, "file_path": str(file_path)}, file, user.id
             )
 
             # 返回文件信息
@@ -160,7 +155,6 @@ class FileService:
             raise HTTPException(status_code=404, detail="用户不存在")
 
         return user
-
 
     def _validate_file_security(self, file: UploadFile) -> None:
         """验证文件安全性"""
@@ -241,16 +235,16 @@ class FileService:
         """确定文件类型"""
         if not filename:
             return "unknown"
-        
+
         file_ext = filename.lower().split(".")[-1] if "." in filename else ""
-        
+
         # 图片类型
         image_exts = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"]
         # 音频类型
         audio_exts = ["mp3", "wav", "flac", "aac", "ogg", "m4a"]
         # 视频类型
         video_exts = ["mp4", "avi", "mkv", "mov", "wmv", "flv", "webm"]
-        
+
         if file_ext in image_exts:
             return "image"
         elif file_ext in audio_exts:
@@ -263,4 +257,3 @@ class FileService:
 
 # 全局实例
 file_service = FileService()
-

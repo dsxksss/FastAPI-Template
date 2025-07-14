@@ -1,7 +1,5 @@
 """文件映射控制器 - 管理文件ID和文件信息的映射关系"""
 
-from typing import List, Optional
-
 from core.crud import CRUDBase
 from models.admin import FileMapping
 
@@ -14,9 +12,9 @@ class FileMappingCreate:
         file_id: str,
         original_name: str,
         file_type: str,
-        file_size: Optional[int],
+        file_size: int | None,
         user_id: int,
-        agent_id: Optional[int] = None,
+        agent_id: int | None = None,
     ):
         self.file_id = file_id
         self.original_name = original_name
@@ -42,9 +40,9 @@ class FileMappingController(
         file_id: str,
         original_name: str,
         file_type: str,
-        file_size: Optional[int],
+        file_size: int | None,
         user_id: int,
-        file_path: Optional[str] = None,
+        file_path: str | None = None,
     ) -> FileMapping:
         """创建文件映射记录"""
         return await FileMapping.create(
@@ -56,16 +54,14 @@ class FileMappingController(
             file_path=file_path,
         )
 
-    async def get_file_info_by_ids(
-        self, file_ids: List[str]
-    ) -> List[FileMapping]:
+    async def get_file_info_by_ids(self, file_ids: list[str]) -> list[FileMapping]:
         """根据文件ID列表获取文件信息"""
         if not file_ids:
             return []
 
         return await FileMapping.filter(file_id__in=file_ids).all()
 
-    async def get_file_mapping_by_file_id(self, file_id: str) -> Optional[dict]:
+    async def get_file_mapping_by_file_id(self, file_id: str) -> dict | None:
         """根据文件ID获取文件映射信息"""
         mapping = await FileMapping.filter(file_id=file_id).first()
         if mapping:

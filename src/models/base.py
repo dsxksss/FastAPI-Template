@@ -9,9 +9,7 @@ from settings import settings
 class BaseModel(models.Model):
     id = fields.BigIntField(pk=True, index=True)
 
-    async def to_dict(
-        self, m2m: bool = False, exclude_fields: list[str] | None = None
-    ):
+    async def to_dict(self, m2m: bool = False, exclude_fields: list[str] | None = None):
         if exclude_fields is None:
             exclude_fields = []
 
@@ -44,9 +42,7 @@ class BaseModel(models.Model):
             for k, v in value.items():
                 if k not in exclude_fields:
                     if isinstance(v, datetime):
-                        formatted_value[k] = v.strftime(
-                            settings.DATETIME_FORMAT
-                        )
+                        formatted_value[k] = v.strftime(settings.DATETIME_FORMAT)
                     else:
                         formatted_value[k] = v
             formatted_values.append(formatted_value)

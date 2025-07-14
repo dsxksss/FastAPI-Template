@@ -1,6 +1,5 @@
 import os
 import sys
-from datetime import datetime
 
 from loguru import logger as loguru_logger
 

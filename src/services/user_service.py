@@ -1,7 +1,5 @@
 """用户服务层 - 统一用户业务逻辑"""
 
-from typing import Dict, List, Optional
-
 from tortoise.expressions import Q
 
 from controllers.dept import dept_controller
@@ -9,7 +7,7 @@ from controllers.user import user_controller
 from schemas.base import Fail, Success, SuccessExtra
 from schemas.users import UserCreate, UserUpdate
 from services.base_service import BaseService
-from utils.cache import cache_manager, cached, clear_user_cache
+from utils.cache import cached, clear_user_cache
 
 
 class UserService(BaseService):
@@ -24,7 +22,7 @@ class UserService(BaseService):
         page_size: int = 10,
         username: str = "",
         email: str = "",
-        dept_id: Optional[int] = None,
+        dept_id: int | None = None,
     ) -> SuccessExtra:
         """获取用户列表 - 包含搜索过滤和部门信息关联"""
         try:
@@ -44,9 +42,7 @@ class UserService(BaseService):
             # 转换数据并关联部门信息
             data = await self._transform_user_list_with_dept(items)
 
-            return SuccessExtra(
-                data=data, total=total, page=page, page_size=page_size
-            )
+            return SuccessExtra(data=data, total=total, page=page, page_size=page_size)
 
         except Exception as e:
             self.logger.error(f"获取用户列表失败: {str(e)}")
@@ -60,9 +56,7 @@ class UserService(BaseService):
             if not user_obj:
                 return Fail(msg="用户不存在")
 
-            user_dict = await user_obj.to_dict(
-                m2m=True, exclude_fields=["password"]
-            )
+            user_dict = await user_obj.to_dict(m2m=True, exclude_fields=["password"])
             return Success(data=user_dict)
 
         except Exception as e:
@@ -114,10 +108,10 @@ class UserService(BaseService):
         """删除用户 - 包含缓存清理"""
         try:
             await user_controller.remove(id=user_id)
-            
+
             # 清除相关缓存
             await clear_user_cache(user_id)
-            
+
             return Success(msg="Deleted Successfully")
 
         except Exception as e:
@@ -138,7 +132,7 @@ class UserService(BaseService):
         self,
         username: str = "",
         email: str = "",
-        dept_id: Optional[int] = None,
+        dept_id: int | None = None,
     ) -> Q:
         """构建用户搜索过滤条件"""
         filters = Q()
@@ -154,23 +148,19 @@ class UserService(BaseService):
 
         return filters
 
-    async def _transform_user_list_with_dept(self, items) -> List[Dict]:
+    async def _transform_user_list_with_dept(self, items) -> list[dict]:
         """转换用户列表数据并关联部门信息"""
         data = []
 
         for obj in items:
             # 转换用户数据，排除密码字段
-            user_dict = await obj.to_dict(
-                m2m=True, exclude_fields=["password"]
-            )
+            user_dict = await obj.to_dict(m2m=True, exclude_fields=["password"])
 
             # 关联部门信息
             dept_id = user_dict.pop("dept_id", None)
             if dept_id:
                 dept_obj = await dept_controller.get(id=dept_id)
-                user_dict["dept"] = (
-                    await dept_obj.to_dict() if dept_obj else {}
-                )
+                user_dict["dept"] = await dept_obj.to_dict() if dept_obj else {}
             else:
                 user_dict["dept"] = {}
 

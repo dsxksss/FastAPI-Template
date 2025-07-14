@@ -1,5 +1,3 @@
-from typing import List
-
 from core.crud import CRUDBase
 from models.admin import Api, Menu, Role
 from schemas.roles import RoleCreate, RoleUpdate
@@ -13,7 +11,7 @@ class RoleController(CRUDBase[Role, RoleCreate, RoleUpdate]):
         return await self.model.filter(name=name).exists()
 
     async def update_roles(
-        self, role: Role, menu_ids: List[int], api_infos: List[dict]
+        self, role: Role, menu_ids: list[int], api_infos: list[dict]
     ) -> None:
         # 更新菜单关联
         await role.menus.clear()
@@ -30,7 +28,6 @@ class RoleController(CRUDBase[Role, RoleCreate, RoleUpdate]):
             ).first()
             if api_obj:
                 await role.apis.add(api_obj)
-
 
 
 role_controller = RoleController()

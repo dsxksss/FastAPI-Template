@@ -4,7 +4,6 @@
 """
 
 import json
-from typing import Optional, Tuple
 
 import ahocorasick
 
@@ -41,9 +40,7 @@ class SensitiveWordFilter:
             for idx, word in enumerate(settings.SENSITIVE_WORDS):
                 if word.strip():  # 忽略空字符串
                     # 转换为小写进行匹配，提高匹配准确性
-                    self.automaton.add_word(
-                        word.strip().lower(), (idx, word.strip())
-                    )
+                    self.automaton.add_word(word.strip().lower(), (idx, word.strip()))
 
             # 构建自动机
             self.automaton.make_automaton()
@@ -56,7 +53,7 @@ class SensitiveWordFilter:
             logger.error(f"构建敏感词自动机失败: {str(e)}")
             self.enabled = False
 
-    def contains_sensitive_word(self, text: str) -> Tuple[bool, Optional[str]]:
+    def contains_sensitive_word(self, text: str) -> tuple[bool, str | None]:
         """检测文本是否包含敏感词
 
         Args:
@@ -108,7 +105,7 @@ class SensitiveWordFilter:
 
         return text
 
-    def filter_streaming_chunk(self, chunk: str) -> Optional[str]:
+    def filter_streaming_chunk(self, chunk: str) -> str | None:
         """过滤流式输出的数据块
 
         Args:
@@ -157,8 +154,8 @@ class SensitiveWordFilter:
 
                     except json.JSONDecodeError:
                         # 如果不是JSON格式，直接检查原始文本
-                        contains_sensitive, matched_word = (
-                            self.contains_sensitive_word(json_content_str)
+                        contains_sensitive, matched_word = self.contains_sensitive_word(
+                            json_content_str
                         )
                         if contains_sensitive:
                             logger.warning(

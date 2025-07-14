@@ -1,6 +1,5 @@
 import json
 import time
-from typing import Optional, Tuple
 
 from fastapi.responses import StreamingResponse
 
@@ -15,7 +14,7 @@ class SensitiveFilterHandler:
     def __init__(self):
         self.filter = sensitive_word_filter
 
-    def check_input(self, text: str) -> Tuple[bool, Optional[str]]:
+    def check_input(self, text: str) -> tuple[bool, str | None]:
         """检查输入文本是否包含敏感词
 
         Returns:
@@ -23,9 +22,7 @@ class SensitiveFilterHandler:
         """
         return self.filter.contains_sensitive_word(text)
 
-    async def handle_sensitive_input_stream(
-        self, matched_word: str, query: str
-    ):
+    async def handle_sensitive_input_stream(self, matched_word: str, query: str):
         """处理包含敏感词的流式请求"""
         logger.warning(f"用户输入包含敏感词 '{matched_word}': {query[:100]}")
 
@@ -60,13 +57,11 @@ class SensitiveFilterHandler:
             }
         )
 
-    def filter_chunk(self, chunk: str) -> Optional[str]:
+    def filter_chunk(self, chunk: str) -> str | None:
         """过滤数据块中的敏感词"""
         return self.filter.filter_streaming_chunk(chunk)
 
-    def create_sensitive_response_data(
-        self, event_data: Optional[dict] = None
-    ) -> dict:
+    def create_sensitive_response_data(self, event_data: dict | None = None) -> dict:
         """创建敏感词响应数据"""
         return {
             "event": "workflow_finished",
@@ -78,9 +73,7 @@ class SensitiveFilterHandler:
             "created_at": int(time.time()),
         }
 
-    def create_sensitive_stream_message(
-        self, event_data: Optional[dict] = None
-    ) -> dict:
+    def create_sensitive_stream_message(self, event_data: dict | None = None) -> dict:
         """创建敏感词流式消息"""
         return {
             "event": "error",

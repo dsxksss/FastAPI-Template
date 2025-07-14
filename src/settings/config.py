@@ -1,7 +1,6 @@
 import json
 import os
 import secrets
-import typing
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,19 +23,19 @@ class Settings(BaseSettings):
     )
 
     @property
-    def CORS_ORIGINS_LIST(self) -> typing.List[str]:
+    def CORS_ORIGINS_LIST(self) -> list[str]:
         """将CORS_ORIGINS字符串转换为列表"""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
 
     CORS_ALLOW_CREDENTIALS: bool = True
-    CORS_ALLOW_METHODS: typing.List = [
+    CORS_ALLOW_METHODS: list = [
         "GET",
         "POST",
         "PUT",
         "DELETE",
         "OPTIONS",
     ]
-    CORS_ALLOW_HEADERS: typing.List = [
+    CORS_ALLOW_HEADERS: list = [
         "Content-Type",
         "Authorization",
         "X-Requested-With",
@@ -101,9 +100,7 @@ class Settings(BaseSettings):
                 "connections": {
                     "default": {
                         "engine": "tortoise.backends.sqlite",
-                        "credentials": {
-                            "file_path": f"{self.BASE_DIR}/db.sqlite3"
-                        },
+                        "credentials": {"file_path": f"{self.BASE_DIR}/db.sqlite3"},
                     }
                 },
                 "apps": {
@@ -121,8 +118,8 @@ class Settings(BaseSettings):
     # Swagger
     SWAGGER_UI_USERNAME: str = os.getenv("SWAGGER_UI_USERNAME", "admin")
     SWAGGER_UI_PASSWORD: str = os.getenv("SWAGGER_UI_PASSWORD", "")
-    COMPANY_ROLE_MAPPING: typing.Dict[str, typing.List[int]] = {"default": []}
-    
+    COMPANY_ROLE_MAPPING: dict[str, list[int]] = {"default": []}
+
     # Redis配置
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     CACHE_TTL: int = 300  # 默认缓存过期时间（秒）
@@ -174,10 +171,10 @@ class Settings(BaseSettings):
         """生产环境特定配置验证"""
         if self.DEBUG:
             raise ValueError("生产环境不能启用DEBUG模式")
-        
+
         if self.DB_ENGINE == "sqlite":
             raise ValueError("生产环境建议使用PostgreSQL而非SQLite")
-        
+
         if "localhost" in self.CORS_ORIGINS:
             raise ValueError("生产环境不应允许localhost的CORS访问")
 

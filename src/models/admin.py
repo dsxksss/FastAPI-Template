@@ -10,25 +10,17 @@ class User(BaseModel, TimestampMixin):
     username = fields.CharField(
         max_length=20, unique=True, description="用户名称", index=True
     )
-    alias = fields.CharField(
-        max_length=30, null=True, description="姓名", index=True
-    )
+    alias = fields.CharField(max_length=30, null=True, description="姓名", index=True)
     email = fields.CharField(
         max_length=255, unique=True, description="邮箱", index=True
     )
-    phone = fields.CharField(
-        max_length=20, null=True, description="电话", index=True
-    )
+    phone = fields.CharField(max_length=20, null=True, description="电话", index=True)
     password = fields.CharField(max_length=128, null=True, description="密码")
-    is_active = fields.BooleanField(
-        default=True, description="是否激活", index=True
-    )
+    is_active = fields.BooleanField(default=True, description="是否激活", index=True)
     is_superuser = fields.BooleanField(
         default=False, description="是否为超级管理员", index=True
     )
-    last_login = fields.DatetimeField(
-        null=True, description="最后登录时间", index=True
-    )
+    last_login = fields.DatetimeField(null=True, description="最后登录时间", index=True)
     roles = fields.ManyToManyField("models.Role", related_name="user_roles")
     dept_id = fields.IntField(null=True, description="部门ID", index=True)
 
@@ -50,12 +42,8 @@ class Role(BaseModel, TimestampMixin):
 
 class Api(BaseModel, TimestampMixin):
     path = fields.CharField(max_length=100, description="API路径", index=True)
-    method = fields.CharEnumField(
-        MethodType, description="请求方法", index=True
-    )
-    summary = fields.CharField(
-        max_length=500, description="请求简介", index=True
-    )
+    method = fields.CharEnumField(MethodType, description="请求方法", index=True)
+    summary = fields.CharField(max_length=500, description="请求简介", index=True)
     tags = fields.CharField(max_length=100, description="API标签", index=True)
 
     class Meta:
@@ -65,9 +53,7 @@ class Api(BaseModel, TimestampMixin):
 class Menu(BaseModel, TimestampMixin):
     name = fields.CharField(max_length=20, description="菜单名称", index=True)
     remark = fields.JSONField(null=True, description="保留字段")
-    menu_type = fields.CharEnumField(
-        MenuType, null=True, description="菜单类型"
-    )
+    menu_type = fields.CharEnumField(MenuType, null=True, description="菜单类型")
     icon = fields.CharField(max_length=100, null=True, description="菜单图标")
     path = fields.CharField(max_length=100, description="菜单路径", index=True)
     order = fields.IntField(default=0, description="排序", index=True)
@@ -75,9 +61,7 @@ class Menu(BaseModel, TimestampMixin):
     is_hidden = fields.BooleanField(default=False, description="是否隐藏")
     component = fields.CharField(max_length=100, description="组件")
     keepalive = fields.BooleanField(default=True, description="存活")
-    redirect = fields.CharField(
-        max_length=100, null=True, description="重定向"
-    )
+    redirect = fields.CharField(max_length=100, null=True, description="重定向")
 
     class Meta:
         table = "menu"
@@ -136,13 +120,15 @@ class AuditLog(BaseModel, TimestampMixin):
 
 class FileMapping(BaseModel, TimestampMixin):
     """文件映射模型 - 管理文件ID和文件信息的映射关系"""
-    
-    file_id = fields.CharField(max_length=255, unique=True, description="文件ID", index=True)
+
+    file_id = fields.CharField(
+        max_length=255, unique=True, description="文件ID", index=True
+    )
     original_filename = fields.CharField(max_length=255, description="原始文件名")
     file_type = fields.CharField(max_length=50, description="文件类型")
     file_size = fields.BigIntField(null=True, description="文件大小(字节)")
     upload_user_id = fields.IntField(description="上传用户ID", index=True)
     file_path = fields.CharField(max_length=500, null=True, description="本地文件路径")
-    
+
     class Meta:
         table = "file_mapping"

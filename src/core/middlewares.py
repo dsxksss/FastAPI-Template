@@ -1,7 +1,8 @@
 import json
 import re
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import Any, AsyncGenerator
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.responses import Response, StreamingResponse
@@ -69,9 +70,7 @@ class SimpleBaseMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(
-        self, scope: Scope, receive: Receive, send: Send
-    ) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -131,17 +130,13 @@ class HttpAuditLogMiddleware(BaseHTTPMiddleware):
 
         return args
 
-    async def get_response_body(
-        self, request: Request, response: Response
-    ) -> Any:
+    async def get_response_body(self, request: Request, response: Response) -> Any:
         # 对于流式响应，不记录响应体
         if isinstance(response, StreamingResponse):
             return {"message": "[Streaming Response]"}
 
         # 检查响应类型，如果是流式相关的响应类型也跳过
-        if hasattr(response, "body_iterator") and not hasattr(
-            response, "body"
-        ):
+        if hasattr(response, "body_iterator") and not hasattr(response, "body"):
             return {"message": "[Streaming Response]"}
 
         body = b""
@@ -170,9 +165,7 @@ class HttpAuditLogMiddleware(BaseHTTPMiddleware):
             # 如果读取响应体失败，返回默认值
             return {"message": "[Unable to read response body]"}
 
-        if any(
-            request.url.path.startswith(path) for path in self.audit_log_paths
-        ):
+        if any(request.url.path.startswith(path) for path in self.audit_log_paths):
             try:
                 data = self.lenient_json(body)
                 # 只保留基本信息，去除详细的响应内容
@@ -195,15 +188,11 @@ class HttpAuditLogMiddleware(BaseHTTPMiddleware):
                 pass
         return v
 
-    async def _async_iter(
-        self, items: list[bytes]
-    ) -> AsyncGenerator[bytes, None]:
+    async def _async_iter(self, items: list[bytes]) -> AsyncGenerator[bytes, None]:
         for item in items:
             yield item
 
-    async def get_request_log(
-        self, request: Request, response: Response
-    ) -> dict:
+    async def get_request_log(self, request: Request, response: Response) -> dict:
         """
         根据request和response对象获取对应的日志记录数据
         """
@@ -246,15 +235,11 @@ class HttpAuditLogMiddleware(BaseHTTPMiddleware):
             for path in self.exclude_paths:
                 if re.search(path, request.url.path, re.I) is not None:
                     return
-            data: dict = await self.get_request_log(
-                request=request, response=response
-            )
+            data: dict = await self.get_request_log(request=request, response=response)
             data["response_time"] = process_time
 
             data["request_args"] = request.state.request_args
-            data["response_body"] = await self.get_response_body(
-                request, response
-            )
+            data["response_body"] = await self.get_response_body(request, response)
             await AuditLog.create(**data)
 
         return response
@@ -266,9 +251,7 @@ class HttpAuditLogMiddleware(BaseHTTPMiddleware):
         await self.before_request(request)
         response = await call_next(request)
         end_time: datetime = datetime.now()
-        process_time = int(
-            (end_time.timestamp() - start_time.timestamp()) * 1000
-        )
+        process_time = int((end_time.timestamp() - start_time.timestamp()) * 1000)
         await self.after_request(request, response, process_time)
         return response
 

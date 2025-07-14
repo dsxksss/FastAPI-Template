@@ -5,9 +5,7 @@ from pydantic import BaseModel, Field
 
 class CredentialsSchema(BaseModel):
     username: str = Field(..., description="用户名称", example="admin")
-    password: str = Field(
-        ..., description="密码", example="请输入正确的测试密码"
-    )
+    password: str = Field(..., description="密码", example="请输入正确的测试密码")
 
 
 class JWTOut(BaseModel):

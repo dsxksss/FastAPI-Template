@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import HTTPException
 from tortoise.expressions import Q
@@ -23,11 +23,11 @@ class BaseService:
         self,
         page: int = 1,
         page_size: int = 10,
-        search_filters: Optional[Q] = None,
-        order: Optional[List[str]] = None,
-        exclude_fields: Optional[List[str]] = None,
+        search_filters: Q | None = None,
+        order: list[str] | None = None,
+        exclude_fields: list[str] | None = None,
         include_m2m: bool = False,
-        transform_func: Optional[callable] = None,
+        transform_func: callable | None = None,
     ) -> SuccessExtra:
         """获取分页列表 - 统一版本
 
@@ -62,9 +62,7 @@ class BaseService:
                     for item in items
                 ]
 
-            return SuccessExtra(
-                data=data, total=total, page=page, page_size=page_size
-            )
+            return SuccessExtra(data=data, total=total, page=page, page_size=page_size)
 
         except Exception as e:
             self.logger.error(f"获取分页列表失败: {str(e)}")
@@ -73,7 +71,7 @@ class BaseService:
     async def get_by_id(
         self,
         item_id: int,
-        exclude_fields: Optional[List[str]] = None,
+        exclude_fields: list[str] | None = None,
         include_m2m: bool = False,
         not_found_msg: str = "记录不存在",
     ) -> Success:
@@ -106,9 +104,9 @@ class BaseService:
 
     async def create_item(
         self,
-        item_data: Dict[str, Any],
+        item_data: dict[str, Any],
         success_msg: str = "创建成功",
-        exclude_fields: Optional[List[str]] = None,
+        exclude_fields: list[str] | None = None,
     ) -> Success:
         """创建记录
 
@@ -132,10 +130,10 @@ class BaseService:
     async def update_item(
         self,
         item_id: int,
-        item_data: Dict[str, Any],
+        item_data: dict[str, Any],
         success_msg: str = "更新成功",
         not_found_msg: str = "记录不存在",
-        exclude_fields: Optional[List[str]] = None,
+        exclude_fields: list[str] | None = None,
     ) -> Success:
         """更新记录
 
@@ -155,9 +153,7 @@ class BaseService:
                 raise HTTPException(status_code=404, detail=not_found_msg)
 
             updated_item = await self.controller.update(item_id, item_data)
-            data = await updated_item.to_dict(
-                exclude_fields=exclude_fields or []
-            )
+            data = await updated_item.to_dict(exclude_fields=exclude_fields or [])
             return Success(data=data, msg=success_msg)
 
         except HTTPException:
@@ -215,7 +211,7 @@ class PermissionService:
         if user.is_superuser:
             return set()  # 超级管理员无限制
 
-        roles: List[Role] = await user.roles.all()
+        roles: list[Role] = await user.roles.all()
         if not roles:
             return set()
 
@@ -228,9 +224,9 @@ class PermissionService:
 
     @staticmethod
     def build_search_filters(
-        keyword: Optional[str] = None,
-        search_fields: Optional[List[str]] = None,
-        extra_filters: Optional[Dict[str, Any]] = None,
+        keyword: str | None = None,
+        search_fields: list[str] | None = None,
+        extra_filters: dict[str, Any] | None = None,
     ) -> Q:
         """构建搜索过滤条件"""
         filters = Q()

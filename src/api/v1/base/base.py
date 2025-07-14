@@ -1,25 +1,23 @@
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 
 from controllers.user import user_controller
 from core.ctx import CTX_USER_ID
-from core.dependency import DependAuth, DependPermisson
+from core.dependency import DependAuth
 from models.admin import User
-from schemas.base import Success, Fail
+from schemas.base import Fail, Success
 from schemas.login import (
-    CredentialsSchema, 
-    JWTOut, 
-    JWTPayload, 
+    CredentialsSchema,
+    JWTOut,
     RefreshTokenRequest,
-    TokenRefreshOut
+    TokenRefreshOut,
 )
 from settings import settings
-from utils.jwt import create_access_token, create_token_pair, verify_token
+from utils.jwt import create_token_pair, verify_token
 
 # 创建限流器实例
 limiter = Limiter(key_func=get_remote_address)
@@ -32,19 +30,17 @@ router = APIRouter()
 async def login_access_token(request: Request, credentials: CredentialsSchema):
     user: User = await user_controller.authenticate(credentials)
     await user_controller.update_last_login(user.id)
-    
+
     # 创建访问令牌和刷新令牌
     access_token, refresh_token = create_token_pair(
-        user_id=user.id,
-        username=user.username,
-        is_superuser=user.is_superuser
+        user_id=user.id, username=user.username, is_superuser=user.is_superuser
     )
 
     data = JWTOut(
         access_token=access_token,
         refresh_token=refresh_token,
         username=user.username,
-        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     return Success(data=data.model_dump())
 
@@ -58,28 +54,26 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
     try:
         # 验证刷新令牌
         payload = verify_token(refresh_request.refresh_token, token_type="refresh")
-        
+
         # 验证用户是否仍然存在且有效
         user = await user_controller.get(id=payload.user_id)
         if not user or not user.is_active:
             return Fail(code=401, msg="用户不存在或已被禁用")
-        
+
         # 创建新的令牌对
         access_token, refresh_token = create_token_pair(
-            user_id=user.id,
-            username=user.username,
-            is_superuser=user.is_superuser
+            user_id=user.id, username=user.username, is_superuser=user.is_superuser
         )
-        
+
         data = TokenRefreshOut(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
-        
+
         return Success(data=data.model_dump())
-        
-    except Exception as e:
+
+    except Exception:
         return Fail(code=401, msg="令牌无效或已过期")
 
 
@@ -96,10 +90,10 @@ async def health_check():
     """系统健康检查"""
     return {
         "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "version": settings.VERSION,
         "environment": settings.APP_ENV,
-        "service": "FastAPI Backend Template"
+        "service": "FastAPI Backend Template",
     }
 
 
@@ -112,7 +106,7 @@ async def get_version():
         "project_name": settings.PROJECT_NAME,
         "build": os.getenv("BUILD_NUMBER", "dev"),
         "commit": os.getenv("GIT_COMMIT", "unknown"),
-        "python_version": os.getenv("PYTHON_VERSION", "3.11+")
+        "python_version": os.getenv("PYTHON_VERSION", "3.11+"),
     }
 
 

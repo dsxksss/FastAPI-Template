@@ -5,7 +5,6 @@
 
 import uuid
 from contextvars import ContextVar
-from typing import Optional
 
 # 延迟导入，避免循环导入
 # from log import logger
@@ -24,7 +23,7 @@ class LogContext:
         return str(uuid.uuid4())[:8]
 
     @staticmethod
-    def set_request_id(request_id: Optional[str] = None) -> str:
+    def set_request_id(request_id: str | None = None) -> str:
         """设置请求ID"""
         if not request_id:
             request_id = LogContext.generate_request_id()
@@ -32,7 +31,7 @@ class LogContext:
         return request_id
 
     @staticmethod
-    def set_user_id(user_id: Optional[str]) -> None:
+    def set_user_id(user_id: str | None) -> None:
         """设置用户ID"""
         user_id_var.set(str(user_id) if user_id else "-")
 
@@ -67,9 +66,7 @@ class LogContext:
 class RequestLogContext:
     """请求级别的日志上下文管理器"""
 
-    def __init__(
-        self, request_id: Optional[str] = None, user_id: Optional[str] = None
-    ):
+    def __init__(self, request_id: str | None = None, user_id: str | None = None):
         self.request_id = request_id
         self.user_id = user_id
         self.old_request_id = None
@@ -98,8 +95,6 @@ def get_context_logger():
     return LogContext.get_logger()
 
 
-def with_request_context(
-    request_id: Optional[str] = None, user_id: Optional[str] = None
-):
+def with_request_context(request_id: str | None = None, user_id: str | None = None):
     """创建请求上下文管理器"""
     return RequestLogContext(request_id, user_id)

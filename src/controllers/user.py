@@ -1,7 +1,7 @@
 import secrets
 import string
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from fastapi.exceptions import HTTPException
 
@@ -18,10 +18,10 @@ class UserController(CRUDBase[User, UserCreate, UserUpdate]):
     def __init__(self):
         super().__init__(model=User)
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         return await self.model.filter(email=email).first()
 
-    async def get_by_username(self, username: str) -> Optional[User]:
+    async def get_by_username(self, username: str) -> User | None:
         return await self.model.filter(username=username).first()
 
     async def create_user(self, obj_in: UserCreate) -> User:
@@ -34,9 +34,7 @@ class UserController(CRUDBase[User, UserCreate, UserUpdate]):
         user.last_login = datetime.now()
         await user.save()
 
-    async def authenticate(
-        self, credentials: CredentialsSchema
-    ) -> Optional["User"]:
+    async def authenticate(self, credentials: CredentialsSchema) -> Optional["User"]:
         user = await self.model.filter(username=credentials.username).first()
         if not user:
             raise HTTPException(status_code=400, detail="无效的用户名")
@@ -47,7 +45,7 @@ class UserController(CRUDBase[User, UserCreate, UserUpdate]):
             raise HTTPException(status_code=400, detail="用户已被禁用")
         return user
 
-    async def update_roles(self, user: User, role_ids: List[int]) -> None:
+    async def update_roles(self, user: User, role_ids: list[int]) -> None:
         await user.roles.clear()
         for role_id in role_ids:
             role_obj = await role_controller.get(id=role_id)
@@ -57,19 +55,17 @@ class UserController(CRUDBase[User, UserCreate, UserUpdate]):
         """重置用户密码，返回新密码"""
         user_obj = await self.get(id=user_id)
         if user_obj.is_superuser:
-            raise HTTPException(
-                status_code=403, detail="不允许重置超级管理员密码"
-            )
+            raise HTTPException(status_code=403, detail="不允许重置超级管理员密码")
         # 生成安全的随机密码
         new_password = self._generate_secure_password()
         user_obj.password = get_password_hash(password=new_password)
         await user_obj.save()
         return new_password
-    
+
     def _generate_secure_password(self, length: int = 12) -> str:
         """生成安全的随机密码"""
         alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-        password = ''.join(secrets.choice(alphabet) for _ in range(length))
+        password = "".join(secrets.choice(alphabet) for _ in range(length))
         return password
 
 

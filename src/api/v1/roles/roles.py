@@ -11,6 +11,7 @@ from schemas.roles import (
     RoleUpdate,
     RoleUpdateMenusApis,
 )
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -75,8 +76,6 @@ async def get_role_authorized(id: int = Query(..., description="角色ID")):
 async def update_role_authorized(role_in: RoleUpdateMenusApis):
     role_obj = await role_controller.get(id=role_in.id)
     await role_controller.update_roles(
-        role=role_obj, 
-        menu_ids=role_in.menu_ids, 
-        api_infos=role_in.api_infos
+        role=role_obj, menu_ids=role_in.menu_ids, api_infos=role_in.api_infos
     )
     return Success(msg="Updated Successfully")

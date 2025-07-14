@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, UploadFile
 
 from core.dependency import DependAuth
 from services.file_service import file_service

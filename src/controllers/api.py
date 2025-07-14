@@ -20,9 +20,7 @@ class ApiController(CRUDBase[Api, ApiCreate, ApiUpdate]):
         for route in app.routes:
             # 只更新有鉴权的API
             if isinstance(route, APIRoute) and len(route.dependencies) > 0:
-                all_api_list.append(
-                    (list(route.methods)[0], route.path_format)
-                )
+                all_api_list.append((list(route.methods)[0], route.path_format))
         delete_api = []
         for api in await Api.all():
             if (api.method, api.path) not in all_api_list:

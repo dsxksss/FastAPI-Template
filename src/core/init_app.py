@@ -5,10 +5,9 @@ from aerich import Command
 from fastapi import FastAPI
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
-from tortoise.expressions import Q
-
-from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from tortoise.expressions import Q
 
 from api import api_router
 from api.v1.base.base import limiter
@@ -69,9 +68,7 @@ def register_exceptions(app: FastAPI):
     app.add_exception_handler(HTTPException, HttpExcHandle)
     app.add_exception_handler(IntegrityError, IntegrityHandle)
     app.add_exception_handler(RequestValidationError, RequestValidationHandle)
-    app.add_exception_handler(
-        ResponseValidationError, ResponseValidationHandle
-    )
+    app.add_exception_handler(ResponseValidationError, ResponseValidationHandle)
     # 注册限流异常处理
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -255,17 +252,13 @@ async def init_roles():
         await user_role.menus.add(*all_menus)
 
         # 为普通用户分配基本API
-        basic_apis = await Api.filter(
-            Q(method__in=["GET"]) | Q(tags="基础模块")
-        )
+        basic_apis = await Api.filter(Q(method__in=["GET"]) | Q(tags="基础模块"))
         await user_role.apis.add(*basic_apis)
 
         logger.info("✅ 用户角色初始化成功 - 角色: 管理员, 普通用户")
     else:
         role_count = await Role.all().count()
-        logger.info(
-            f"ℹ️ 用户角色已存在，跳过初始化 - 当前角色数量: {role_count}"
-        )
+        logger.info(f"ℹ️ 用户角色已存在，跳过初始化 - 当前角色数量: {role_count}")
 
 
 async def init_data():
@@ -286,10 +279,10 @@ async def init_data():
 async def startup():
     """应用启动事件"""
     logger.info("🚀 Fast API应用启动中...")
-    
+
     # 初始化Redis连接
     await cache_manager.connect()
-    
+
     # 初始化数据库
     await init_data()
 
@@ -297,7 +290,7 @@ async def startup():
 async def shutdown():
     """应用关闭事件"""
     logger.info("🛑 Fast API应用关闭中...")
-    
+
     # 断开Redis连接
     await cache_manager.disconnect()
 

@@ -17,17 +17,13 @@ async def DoesNotExistHandle(req: Request, exc: DoesNotExist) -> JSONResponse:
         msg = f"Object not found: {exc}, query_params: {req.query_params}"
     else:
         msg = "请求的资源不存在"
-    
+
     content = dict(code=404, msg=msg)
     return JSONResponse(content=content, status_code=404)
 
 
 async def HttpExcHandle(request: Request, exc: HTTPException):
-    if (
-        exc.status_code == 401
-        and exc.headers
-        and "WWW-Authenticate" in exc.headers
-    ):
+    if exc.status_code == 401 and exc.headers and "WWW-Authenticate" in exc.headers:
         return Response(status_code=exc.status_code, headers=exc.headers)
     return JSONResponse(
         status_code=exc.status_code,
@@ -41,7 +37,7 @@ async def IntegrityHandle(request: Request, exc: IntegrityError):
         msg = f"IntegrityError: {exc}"
     else:
         msg = "数据完整性错误，请检查输入数据"
-    
+
     content = dict(code=500, msg=msg)
     return JSONResponse(content=content, status_code=500)
 
@@ -54,7 +50,7 @@ async def RequestValidationHandle(
         msg = f"RequestValidationError: {exc}"
     else:
         msg = "请求参数验证失败，请检查输入格式"
-    
+
     content = dict(code=422, msg=msg)
     return JSONResponse(content=content, status_code=422)
 
@@ -67,6 +63,6 @@ async def ResponseValidationHandle(
         msg = f"ResponseValidationError: {exc}"
     else:
         msg = "服务器响应格式错误"
-    
+
     content = dict(code=500, msg=msg)
     return JSONResponse(content=content, status_code=500)

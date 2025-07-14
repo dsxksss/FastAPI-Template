@@ -1,5 +1,4 @@
 import json
-from typing import List, Optional
 
 from log import logger
 
@@ -8,11 +7,9 @@ class DataProcessor:
     """数据处理工具类 - 合并所有重复的数据处理逻辑"""
 
     @staticmethod
-    def extract_workflow_data(chunks: List[str]) -> Optional[dict]:
+    def extract_workflow_data(chunks: list[str]) -> dict | None:
         """从数据块中提取workflow_finished事件数据 - 统一版本"""
-        logger.info(
-            f"开始从 {len(chunks)} 个数据块中提取workflow_finished事件"
-        )
+        logger.info(f"开始从 {len(chunks)} 个数据块中提取workflow_finished事件")
 
         found_event_types = []
 
@@ -45,7 +42,7 @@ class DataProcessor:
         return None
 
     @staticmethod
-    def extract_text_from_chunks(chunks: List[str]) -> str:
+    def extract_text_from_chunks(chunks: list[str]) -> str:
         """从数据块中提取累积的文本内容"""
         accumulated_text = ""
 
@@ -70,9 +67,7 @@ class DataProcessor:
                             # 检查是否有输出内容
                             data = event_data.get("data", {})
                             if data.get("outputs"):
-                                answer = data.get("outputs", {}).get(
-                                    "answer", ""
-                                )
+                                answer = data.get("outputs", {}).get("answer", "")
                                 if answer:
                                     accumulated_text = answer  # 使用最终答案
                             elif data.get("answer"):
@@ -83,7 +78,7 @@ class DataProcessor:
         return accumulated_text.strip()
 
     @staticmethod
-    def parse_chunk_event(chunk: str) -> Optional[dict]:
+    def parse_chunk_event(chunk: str) -> dict | None:
         """解析数据块中的事件"""
         if not chunk.startswith("data:"):
             return None
