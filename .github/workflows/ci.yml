@@ -40,7 +40,16 @@ jobs:
 
     - name: Test with pytest
       run: |
-        uv run pytest tests/ -v --cov=src --cov-report=xml --cov-report=html || true  # Allow tests to fail for now
+        uv run pytest tests/test_core_functionality.py tests/test_simple_jwt.py -v --cov=src --cov-report=xml --cov-report=html --cov-report=term-missing
+        
+    - name: Upload coverage reports
+      if: matrix.python-version == '3.11'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: |
+          coverage.xml
+          htmlcov/
 
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'

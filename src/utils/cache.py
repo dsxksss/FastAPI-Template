@@ -1,8 +1,8 @@
 import json
 from functools import wraps
-from typing import Any
+from typing import Any, Optional
 
-import aioredis
+import redis.asyncio as redis
 
 from log import logger
 from settings.config import settings
@@ -12,14 +12,14 @@ class CacheManager:
     """Redis缓存管理器"""
 
     def __init__(self):
-        self.redis: aioredis.Redis | None = None
+        self.redis: Optional[redis.Redis] = None
         self._connection_pool = None
 
     async def connect(self):
         """连接Redis"""
         if self.redis is None:
             try:
-                self.redis = aioredis.from_url(
+                self.redis = redis.from_url(
                     settings.REDIS_URL,
                     encoding="utf-8",
                     decode_responses=True,
@@ -36,11 +36,11 @@ class CacheManager:
     async def disconnect(self):
         """断开Redis连接"""
         if self.redis:
-            await self.redis.aclose()
+            await self.redis.close()
             self.redis = None
             logger.info("Redis连接已断开")
 
-    async def get(self, key: str) -> Any | None:
+    async def get(self, key: str) -> Optional[Any]:
         """获取缓存值"""
         if not self.redis:
             return None
@@ -54,7 +54,7 @@ class CacheManager:
             logger.error(f"获取缓存失败 key={key}: {str(e)}")
             return None
 
-    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """设置缓存值"""
         if not self.redis:
             return False
@@ -126,7 +126,7 @@ class CacheManager:
 cache_manager = CacheManager()
 
 
-def cached(prefix: str, ttl: int | None = None, key_func: callable | None = None):
+def cached(prefix: str, ttl: Optional[int] = None, key_func: Optional[callable] = None):
     """缓存装饰器
 
     Args:
