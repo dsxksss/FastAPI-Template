@@ -1,5 +1,6 @@
 import json
 import os
+import secrets
 import typing
 
 from pydantic import field_validator
@@ -49,9 +50,10 @@ class Settings(BaseSettings):
     )
     BASE_DIR: str = os.path.abspath(os.path.join(PROJECT_ROOT, os.pardir))
     LOGS_ROOT: str = os.path.join(BASE_DIR, "app/logs")
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "")  # 必须从环境变量获取
+    SECRET_KEY: str = os.getenv("SECRET_KEY") or secrets.token_urlsafe(32)
     JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 day
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 4  # 4 hours
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # 7 days for refresh token
     # 数据库配置
     DB_ENGINE: str = "postgres"  # 默认使用PostgreSQL
     DB_HOST: str = "localhost"
