@@ -10,10 +10,16 @@ from controllers.user import user_controller
 from core.ctx import CTX_USER_ID
 from core.dependency import DependAuth, DependPermisson
 from models.admin import User
-from schemas.base import Success
-from schemas.login import CredentialsSchema, JWTOut, JWTPayload
+from schemas.base import Success, Fail
+from schemas.login import (
+    CredentialsSchema, 
+    JWTOut, 
+    JWTPayload, 
+    RefreshTokenRequest,
+    TokenRefreshOut
+)
 from settings import settings
-from utils.jwt import create_access_token
+from utils.jwt import create_access_token, create_token_pair, verify_token
 
 # 创建限流器实例
 limiter = Limiter(key_func=get_remote_address)
@@ -26,23 +32,55 @@ router = APIRouter()
 async def login_access_token(request: Request, credentials: CredentialsSchema):
     user: User = await user_controller.authenticate(credentials)
     await user_controller.update_last_login(user.id)
-    access_token_expires = timedelta(
-        minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+    
+    # 创建访问令牌和刷新令牌
+    access_token, refresh_token = create_token_pair(
+        user_id=user.id,
+        username=user.username,
+        is_superuser=user.is_superuser
     )
-    expire = datetime.now(timezone.utc) + access_token_expires
 
     data = JWTOut(
-        access_token=create_access_token(
-            data=JWTPayload(
-                user_id=user.id,
-                username=user.username,
-                is_superuser=user.is_superuser,
-                exp=expire,
-            )
-        ),
+        access_token=access_token,
+        refresh_token=refresh_token,
         username=user.username,
+        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
     return Success(data=data.model_dump())
+
+
+@router.post("/refresh_token", summary="刷新token")
+@limiter.limit("10/minute")  # 每分钟最多10次刷新
+async def refresh_access_token(request: Request, refresh_request: RefreshTokenRequest):
+    """
+    使用刷新令牌获取新的访问令牌和刷新令牌
+    """
+    try:
+        # 验证刷新令牌
+        payload = verify_token(refresh_request.refresh_token, token_type="refresh")
+        
+        # 验证用户是否仍然存在且有效
+        user = await user_controller.get(id=payload.user_id)
+        if not user or not user.is_active:
+            return Fail(code=401, msg="用户不存在或已被禁用")
+        
+        # 创建新的令牌对
+        access_token, refresh_token = create_token_pair(
+            user_id=user.id,
+            username=user.username,
+            is_superuser=user.is_superuser
+        )
+        
+        data = TokenRefreshOut(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
+        
+        return Success(data=data.model_dump())
+        
+    except Exception as e:
+        return Fail(code=401, msg="令牌无效或已过期")
 
 
 @router.get("/userinfo", summary="查看用户信息", dependencies=[DependAuth])

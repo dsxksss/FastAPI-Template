@@ -48,6 +48,8 @@ dependencies = [
     "asyncpg>=0.28.0",
     "setuptools>=68.0.0",
     "slowapi>=0.1.9",
+    "redis>=4.5.0",
+    "aioredis>=2.0.0",
 ]
 
 [project.optional-dependencies]

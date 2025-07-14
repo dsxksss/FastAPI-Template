@@ -76,6 +76,13 @@ class Settings(BaseSettings):
                             "user": self.DB_USER,
                             "password": self.DB_PASSWORD,
                             "database": self.DB_NAME,
+                            # 连接池配置
+                            "minsize": 1,
+                            "maxsize": 20,
+                            "max_queries": 50000,
+                            "max_inactive_connection_lifetime": 300,
+                            "timeout": 60,
+                            "command_timeout": 60,
                         },
                     }
                 },
@@ -115,6 +122,10 @@ class Settings(BaseSettings):
     SWAGGER_UI_USERNAME: str = os.getenv("SWAGGER_UI_USERNAME", "admin")
     SWAGGER_UI_PASSWORD: str = os.getenv("SWAGGER_UI_PASSWORD", "")
     COMPANY_ROLE_MAPPING: typing.Dict[str, typing.List[int]] = {"default": []}
+    
+    # Redis配置
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    CACHE_TTL: int = 300  # 默认缓存过期时间（秒）
 
     @field_validator("COMPANY_ROLE_MAPPING", mode="before")
     @classmethod

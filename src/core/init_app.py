@@ -36,6 +36,7 @@ from log import logger
 from models.admin import Api, Menu, Role
 from schemas.menus import MenuType
 from settings.config import settings
+from utils.cache import cache_manager
 
 
 def make_middlewares():
@@ -282,10 +283,30 @@ async def init_data():
     logger.info("🎉 系统初始化完成！")
 
 
+async def startup():
+    """应用启动事件"""
+    logger.info("🚀 Fast API应用启动中...")
+    
+    # 初始化Redis连接
+    await cache_manager.connect()
+    
+    # 初始化数据库
+    await init_data()
+
+
+async def shutdown():
+    """应用关闭事件"""
+    logger.info("🛑 Fast API应用关闭中...")
+    
+    # 断开Redis连接
+    await cache_manager.disconnect()
+
+
 async def init_app(app: FastAPI):
     """应用启动时初始化"""
-    logger.info("🚀 Fast API应用启动中...")
-    await init_data()
+    # 注册启动和关闭事件
+    app.add_event_handler("startup", startup)
+    app.add_event_handler("shutdown", shutdown)
     logger.info("🎉 Fast API应用启动完成！")
 
 

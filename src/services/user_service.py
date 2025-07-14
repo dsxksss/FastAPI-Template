@@ -9,6 +9,7 @@ from controllers.user import user_controller
 from schemas.base import Fail, Success, SuccessExtra
 from schemas.users import UserCreate, UserUpdate
 from services.base_service import BaseService
+from utils.cache import cache_manager, cached, clear_user_cache
 
 
 class UserService(BaseService):
@@ -51,8 +52,9 @@ class UserService(BaseService):
             self.logger.error(f"获取用户列表失败: {str(e)}")
             return Fail(msg="获取用户列表失败")
 
+    @cached("user_detail", ttl=300)
     async def get_user_detail(self, user_id: int) -> Success:
-        """获取用户详情"""
+        """获取用户详情 - 带缓存"""
         try:
             user_obj = await user_controller.get(id=user_id)
             if not user_obj:
@@ -91,13 +93,16 @@ class UserService(BaseService):
             return Fail(msg="创建用户失败")
 
     async def update_user(self, user_in: UserUpdate) -> Success:
-        """更新用户 - 包含角色更新"""
+        """更新用户 - 包含角色更新和缓存清理"""
         try:
             # 更新用户基础信息
             user = await user_controller.update(id=user_in.id, obj_in=user_in)
 
             # 更新用户角色
             await user_controller.update_roles(user, user_in.role_ids)
+
+            # 清除相关缓存
+            await clear_user_cache(user_in.id)
 
             return Success(msg="Updated Successfully")
 
@@ -106,9 +111,13 @@ class UserService(BaseService):
             return Fail(msg="更新用户失败")
 
     async def delete_user(self, user_id: int) -> Success:
-        """删除用户"""
+        """删除用户 - 包含缓存清理"""
         try:
             await user_controller.remove(id=user_id)
+            
+            # 清除相关缓存
+            await clear_user_cache(user_id)
+            
             return Success(msg="Deleted Successfully")
 
         except Exception as e:
