@@ -61,12 +61,14 @@ def create_app() -> FastAPI:
     async def get_open_api_endpoint(
         username: str = Depends(get_current_username),
     ):
-        return get_openapi(
+        openapi_schema = get_openapi(
             title=app.title,
             version=app.version,
             description=app.description,
             routes=app.routes,
         )
+        
+        return openapi_schema
 
     register_exceptions(app)
     register_routers(app, prefix="/api")
