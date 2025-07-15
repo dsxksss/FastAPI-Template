@@ -11,8 +11,6 @@ from tortoise.expressions import Q
 
 from api import api_router
 from api.v1.base.base import limiter
-from repositories.api import api_repository
-from repositories.user import UserCreate, user_repository
 from core.exceptions import (
     DoesNotExist,
     DoesNotExistHandle,
@@ -33,6 +31,8 @@ from core.middlewares import (
 )
 from log import logger
 from models.admin import Api, Menu, Role
+from repositories.api import api_repository
+from repositories.user import UserCreate, user_repository
 from schemas.menus import MenuType
 from settings.config import settings
 from utils.cache import cache_manager
@@ -68,7 +68,9 @@ def register_exceptions(app: FastAPI):
     app.add_exception_handler(HTTPException, HttpExcHandle)
     app.add_exception_handler(IntegrityError, IntegrityHandle)
     app.add_exception_handler(RequestValidationError, RequestValidationHandle)
-    app.add_exception_handler(ResponseValidationError, ResponseValidationHandle)
+    app.add_exception_handler(
+        ResponseValidationError, ResponseValidationHandle
+    )
     # 注册限流异常处理
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -86,7 +88,7 @@ async def init_superuser():
             UserCreate(
                 username="admin",
                 email="admin@admin.com",
-                password="123456",
+                password="abcd1234",
                 is_active=True,
                 is_superuser=True,
             )
@@ -219,7 +221,7 @@ async def init_db():
 
     await command.init()
     try:
-        await command.migrate()
+        await command.migrate(no_input=True)
     except AttributeError:
         logger.warning(
             "unable to retrieve model history from database, model history will be created from scratch"
@@ -252,13 +254,17 @@ async def init_roles():
         await user_role.menus.add(*all_menus)
 
         # 为普通用户分配基本API
-        basic_apis = await Api.filter(Q(method__in=["GET"]) | Q(tags="基础模块"))
+        basic_apis = await Api.filter(
+            Q(method__in=["GET"]) | Q(tags="基础模块")
+        )
         await user_role.apis.add(*basic_apis)
 
         logger.info("✅ 用户角色初始化成功 - 角色: 管理员, 普通用户")
     else:
         role_count = await Role.all().count()
-        logger.info(f"ℹ️ 用户角色已存在，跳过初始化 - 当前角色数量: {role_count}")
+        logger.info(
+            f"ℹ️ 用户角色已存在，跳过初始化 - 当前角色数量: {role_count}"
+        )
 
 
 async def init_data():

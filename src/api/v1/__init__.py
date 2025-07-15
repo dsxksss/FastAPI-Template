@@ -24,3 +24,5 @@ v1_router.include_router(apis_router, prefix="/api", dependencies=[DependPermiss
 #     auditlog_router, prefix="/auditlog", dependencies=[DependPermisson]
 # )
 v1_router.include_router(files_router, prefix="/files", dependencies=[DependPermisson])
+
+__all__ = ["v1_router"]

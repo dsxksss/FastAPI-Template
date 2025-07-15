@@ -200,7 +200,7 @@ uv run uvicorn src:app --host 0.0.0.0 --port 8000 --workers 4
 
 ```
 用户名: admin
-密码: 123456
+密码: abcd1234
 邮箱: admin@admin.com
 ```
 
