@@ -429,7 +429,7 @@ async def test_create_product():
         # 登录获取token
         login_response = await ac.post("/api/v1/base/access_token", data={
             "username": "admin",
-            "password": "123456"
+            "password": "abcd1234"
         })
         token = login_response.json()["access_token"]
         
