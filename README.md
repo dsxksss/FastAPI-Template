@@ -4,6 +4,38 @@
 
 **一个功能完整、架构清晰的企业级FastAPI后端模板，专为团队开发设计，开箱即用**
 
+<!-- 点赞动画区域 -->
+<div style="margin: 20px 0;">
+  <a href="https://github.com/JiayuXu0/FastAPI-Template" target="_blank">
+    <img src="https://img.shields.io/badge/⭐_给个Star-支持项目-FFD700?style=for-the-badge&logo=github&logoColor=white&labelColor=FF6B6B&color=FFD700" alt="给个Star" style="animation: pulse 2s infinite; transform-origin: center;">
+  </a>
+</div>
+
+<style>
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.8; transform: scale(1.1) rotate(180deg); }
+}
+
+.star-animation {
+  display: inline-block;
+  animation: sparkle 3s ease-in-out infinite;
+}
+</style>
+
+<!-- 互动提示 -->
+<p style="font-size: 16px; color: #666; margin: 10px 0;">
+  <span class="star-animation">⭐</span> 
+  <strong>喜欢这个项目？点个Star支持一下！</strong> 
+  <span class="star-animation">⭐</span>
+</p>
+
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -16,6 +48,20 @@
 [![Docker](https://img.shields.io/badge/🐳_容器-Docker-blue.svg)](https://www.docker.com/)
 
 [📖 快速开始](#-快速开始) • [🏗️ 架构说明](#-架构说明) • [📚 开发指南](CLAUDE.md) • [🤝 贡献指南](CONTRIBUTING.md) • [🌟 给个Star!](https://github.com/JiayuXu0/FastAPI-Template)
+
+</div>
+
+---
+
+## 📸 项目预览
+
+<div align="center">
+
+### ✨ 核心特性
+<img src="docs/images/features-overview.svg" alt="核心特性" width="700">
+
+### 🛠️ 技术栈
+<img src="docs/images/tech-stack.svg" alt="技术栈" width="700">
 
 </div>
 
@@ -441,6 +487,33 @@ uv run pytest --cov=src --cov-report=html
 
 <div align="center">
 
+<!-- 成就展示 -->
+<div style="background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4); background-size: 400% 400%; animation: gradient 15s ease infinite; padding: 20px; border-radius: 15px; margin: 20px 0;">
+  <h3 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🎯 已获得开发者认可</h3>
+  <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+    <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 10px; backdrop-filter: blur(10px);">
+      <strong style="color: white;">⭐ Stars</strong><br>
+      <span style="color: #FFD700; font-size: 18px; font-weight: bold;">持续增长</span>
+    </div>
+    <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 10px; backdrop-filter: blur(10px);">
+      <strong style="color: white;">🍴 Forks</strong><br>
+      <span style="color: #FFD700; font-size: 18px; font-weight: bold;">活跃使用</span>
+    </div>
+    <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 10px; backdrop-filter: blur(10px);">
+      <strong style="color: white;">👥 用户</strong><br>
+      <span style="color: #FFD700; font-size: 18px; font-weight: bold;">企业级</span>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+</style>
+
 ### 🚀 快速上手
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -468,6 +541,23 @@ uv run aerich init-db && uv run uvicorn src:app --reload
 
 **加入我们的开发者社区，一起打造更好的后端模板！**
 
+<!-- 醒目的Star呼吁 -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+  <h3 style="color: white; margin: 0 0 15px 0;">🚀 支持项目发展</h3>
+  <p style="color: #f0f0f0; margin: 0 0 15px 0;">如果这个项目对你有帮助，请给我们一个Star⭐</p>
+  <a href="https://github.com/JiayuXu0/FastAPI-Template" target="_blank" style="text-decoration: none;">
+    <img src="https://img.shields.io/badge/⭐_立即Star-支持项目-FFD700?style=for-the-badge&logo=github&logoColor=white&labelColor=FF6B6B&color=FFD700" alt="立即Star" style="animation: bounce 2s infinite;">
+  </a>
+</div>
+
+<style>
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+</style>
+
 [![GitHub Discussions](https://img.shields.io/github/discussions/JiayuXu0/FastAPI-Template?color=blue&logo=github)](https://github.com/JiayuXu0/FastAPI-Template/discussions)
 [![GitHub Issues](https://img.shields.io/github/issues/JiayuXu0/FastAPI-Template?color=green&logo=github)](https://github.com/JiayuXu0/FastAPI-Template/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/JiayuXu0/FastAPI-Template?color=orange&logo=github)](https://github.com/JiayuXu0/FastAPI-Template/pulls)
@@ -487,3 +577,61 @@ uv run aerich init-db && uv run uvicorn src:app --reload
 - [ ] 📅 **v2.0** - 云原生部署方案
 
 [查看完整路线图 →](https://github.com/JiayuXu0/FastAPI-Template/projects)
+
+---
+
+## 💖 感谢支持
+
+<div align="center">
+
+<!-- 最终呼吁区域 -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 20px; margin: 30px 0; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+  <h2 style="color: white; margin: 0 0 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🌟 喜欢这个项目吗？</h2>
+  
+  <p style="color: #f0f0f0; font-size: 18px; margin: 0 0 25px 0; line-height: 1.6;">
+    如果这个FastAPI模板帮助到了你，请考虑给我们一个⭐Star！<br>
+    你的支持是我们持续改进的动力 💪
+  </p>
+  
+  <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+    <a href="https://github.com/JiayuXu0/FastAPI-Template" target="_blank" style="text-decoration: none;">
+      <img src="https://img.shields.io/badge/⭐_给个Star-支持项目-FFD700?style=for-the-badge&logo=github&logoColor=white&labelColor=FF6B6B&color=FFD700" alt="给个Star" style="animation: heartbeat 1.5s ease-in-out infinite;">
+    </a>
+    <a href="https://github.com/JiayuXu0/FastAPI-Template/fork" target="_blank" style="text-decoration: none;">
+      <img src="https://img.shields.io/badge/🍴_Fork项目-参与开发-4CAF50?style=for-the-badge&logo=github&logoColor=white" alt="Fork项目">
+    </a>
+  </div>
+  
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+    <p style="color: #d0d0d0; font-size: 14px; margin: 0;">
+      ⭐ <strong>Star数量越多，更新越频繁！</strong> ⭐
+    </p>
+  </div>
+</div>
+
+<style>
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+</style>
+
+<!-- 贡献者感谢 -->
+<div style="margin: 20px 0;">
+  <h3>🙏 感谢所有贡献者</h3>
+  <a href="https://github.com/JiayuXu0/FastAPI-Template/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=JiayuXu0/FastAPI-Template" alt="贡献者">
+  </a>
+</div>
+
+<!-- 项目统计 -->
+<div style="margin: 20px 0;">
+  <img src="https://repobeats.axiom.co/api/embed/your-repo-id.svg" alt="项目统计" width="600">
+</div>
+
+**⭐ 如果觉得有用，请给个Star支持一下！⭐**
+
+</div>
