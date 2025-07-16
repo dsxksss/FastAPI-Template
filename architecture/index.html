@@ -3,19 +3,7 @@
     Router --&gt; Service[业务逻辑层]
     Service --&gt; Repository[数据访问层]
     Repository --&gt; Model[数据模型层]
-    Model --&gt; Database[(数据库)]
-
-    Router --&gt; Auth[认证中间件]
-    Router --&gt; Validation[数据验证]
-    Service --&gt; Permission[权限控制]
-    Service --&gt; Cache[缓存层]
-
-    style Client fill:#e1f5fe
-    style Router fill:#fff3e0
-    style Service fill:#f3e5f5
-    style Repository fill:#e8f5e8
-    style Model fill:#fff8e1
-    style Database fill:#fce4ec</code></pre> <h2 id=_3>核心设计原则<a class=headerlink href=#_3 title="Permanent link">&para;</a></h2> <h3 id=1>1. 单一职责原则<a class=headerlink href=#1 title="Permanent link">&para;</a></h3> <p>每个层次都有明确的职责，避免职责混淆：</p> <ul> <li><strong>API层</strong>: 处理HTTP请求和响应</li> <li><strong>Service层</strong>: 实现业务逻辑</li> <li><strong>Repository层</strong>: 数据访问和持久化</li> <li><strong>Model层</strong>: 数据结构定义</li> </ul> <h3 id=2>2. 依赖倒置原则<a class=headerlink href=#2 title="Permanent link">&para;</a></h3> <p>高层模块不依赖低层模块，通过接口实现解耦：</p> <div class="language-python highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=c1># Service层依赖Repository抽象</span>
+    Model --&gt; Database[(数据库)]</code></pre> <h2 id=_3>核心设计原则<a class=headerlink href=#_3 title="Permanent link">&para;</a></h2> <h3 id=1>1. 单一职责原则<a class=headerlink href=#1 title="Permanent link">&para;</a></h3> <p>每个层次都有明确的职责，避免职责混淆：</p> <ul> <li><strong>API层</strong>: 处理HTTP请求和响应</li> <li><strong>Service层</strong>: 实现业务逻辑</li> <li><strong>Repository层</strong>: 数据访问和持久化</li> <li><strong>Model层</strong>: 数据结构定义</li> </ul> <h3 id=2>2. 依赖倒置原则<a class=headerlink href=#2 title="Permanent link">&para;</a></h3> <p>高层模块不依赖低层模块，通过接口实现解耦：</p> <div class="language-python highlight"><pre><span></span><code><span id=__span-0-1><a id=__codelineno-0-1 name=__codelineno-0-1 href=#__codelineno-0-1></a><span class=c1># Service层依赖Repository抽象</span>
 </span><span id=__span-0-2><a id=__codelineno-0-2 name=__codelineno-0-2 href=#__codelineno-0-2></a><span class=k>class</span><span class=w> </span><span class=nc>UserService</span><span class=p>:</span>
 </span><span id=__span-0-3><a id=__codelineno-0-3 name=__codelineno-0-3 href=#__codelineno-0-3></a>    <span class=k>def</span><span class=w> </span><span class=fm>__init__</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>user_repo</span><span class=p>:</span> <span class=n>UserRepository</span><span class=p>):</span>
 </span><span id=__span-0-4><a id=__codelineno-0-4 name=__codelineno-0-4 href=#__codelineno-0-4></a>        <span class=bp>self</span><span class=o>.</span><span class=n>user_repo</span> <span class=o>=</span> <span class=n>user_repo</span>
@@ -53,57 +41,7 @@
 </span><span id=__span-5-5><a id=__codelineno-5-5 name=__codelineno-5-5 href=#__codelineno-5-5></a>
 </span><span id=__span-5-6><a id=__codelineno-5-6 name=__codelineno-5-6 href=#__codelineno-5-6></a>    <span class=c1># 关系定义</span>
 </span><span id=__span-5-7><a id=__codelineno-5-7 name=__codelineno-5-7 href=#__codelineno-5-7></a>    <span class=n>roles</span> <span class=o>=</span> <span class=n>fields</span><span class=o>.</span><span class=n>ManyToManyField</span><span class=p>(</span><span class=s2>&quot;models.Role&quot;</span><span class=p>,</span> <span class=n>related_name</span><span class=o>=</span><span class=s2>&quot;users&quot;</span><span class=p>)</span>
-</span></code></pre></div> <h2 id=_5>核心组件<a class=headerlink href=#_5 title="Permanent link">&para;</a></h2> <h3 id=1_1>1. 认证系统<a class=headerlink href=#1_1 title="Permanent link">&para;</a></h3> <p>基于JWT的认证机制：</p> <pre class=mermaid><code>sequenceDiagram
-    participant Client
-    participant API
-    participant Auth
-    participant Service
-    participant DB
-
-    Client-&gt;&gt;API: 登录请求
-    API-&gt;&gt;Auth: 验证凭据
-    Auth-&gt;&gt;Service: 用户验证
-    Service-&gt;&gt;DB: 查询用户
-    DB--&gt;&gt;Service: 用户信息
-    Service--&gt;&gt;Auth: 验证结果
-    Auth--&gt;&gt;API: JWT Token
-    API--&gt;&gt;Client: 登录成功</code></pre> <h3 id=2_1>2. 权限控制<a class=headerlink href=#2_1 title="Permanent link">&para;</a></h3> <p>基于RBAC的权限模型：</p> <pre class=mermaid><code>graph LR
-    User[用户] --&gt; Role[角色]
-    Role --&gt; Permission[权限]
-    Permission --&gt; API[API端点]
-    Permission --&gt; Menu[菜单]
-
-    User --&gt; Dept[部门]
-    Dept --&gt; Role</code></pre> <h3 id=3_1>3. 数据库设计<a class=headerlink href=#3_1 title="Permanent link">&para;</a></h3> <p>使用Tortoise ORM实现数据持久化：</p> <pre class=mermaid><code>erDiagram
-    User {
-        int id PK
-        string username
-        string email
-        string password
-        boolean is_active
-        datetime created_at
-        datetime updated_at
-    }
-
-    Role {
-        int id PK
-        string name
-        string description
-        datetime created_at
-        datetime updated_at
-    }
-
-    Permission {
-        int id PK
-        string name
-        string method
-        string path
-        datetime created_at
-        datetime updated_at
-    }
-
-    User ||--o{ Role : user_roles
-    Role ||--o{ Permission : role_permissions</code></pre> <h2 id=_6>设计模式<a class=headerlink href=#_6 title="Permanent link">&para;</a></h2> <h3 id=1_2>1. 依赖注入<a class=headerlink href=#1_2 title="Permanent link">&para;</a></h3> <p>使用FastAPI的依赖注入系统：</p> <div class="language-python highlight"><pre><span></span><code><span id=__span-6-1><a id=__codelineno-6-1 name=__codelineno-6-1 href=#__codelineno-6-1></a><span class=c1># 依赖定义</span>
+</span></code></pre></div> <h2 id=_5>核心组件<a class=headerlink href=#_5 title="Permanent link">&para;</a></h2> <h3 id=1_1>1. 认证系统<a class=headerlink href=#1_1 title="Permanent link">&para;</a></h3> <p>基于JWT的认证机制：</p> <ul> <li>用户提交登录凭据</li> <li>系统验证用户身份</li> <li>生成JWT访问令牌</li> <li>客户端携带令牌访问API</li> </ul> <h3 id=2_1>2. 权限控制<a class=headerlink href=#2_1 title="Permanent link">&para;</a></h3> <p>基于RBAC的权限模型：</p> <ul> <li><strong>用户 → 角色</strong>: 用户被分配到不同角色</li> <li><strong>角色 → 权限</strong>: 角色拥有特定权限</li> <li><strong>权限 → 资源</strong>: 权限控制API和菜单访问</li> <li><strong>部门管理</strong>: 支持部门层级权限控制</li> </ul> <h3 id=3_1>3. 数据库设计<a class=headerlink href=#3_1 title="Permanent link">&para;</a></h3> <p>使用Tortoise ORM实现数据持久化：</p> <p><strong>核心表结构：</strong> - <strong>User</strong>: 用户基本信息（用户名、邮箱、密码等） - <strong>Role</strong>: 角色定义（角色名称、描述等） - <strong>Permission</strong>: 权限定义（权限名称、HTTP方法、路径等） - <strong>UserRole</strong>: 用户角色关联表（多对多关系） - <strong>RolePermission</strong>: 角色权限关联表（多对多关系）</p> <h2 id=_6>设计模式<a class=headerlink href=#_6 title="Permanent link">&para;</a></h2> <h3 id=1_2>1. 依赖注入<a class=headerlink href=#1_2 title="Permanent link">&para;</a></h3> <p>使用FastAPI的依赖注入系统：</p> <div class="language-python highlight"><pre><span></span><code><span id=__span-6-1><a id=__codelineno-6-1 name=__codelineno-6-1 href=#__codelineno-6-1></a><span class=c1># 依赖定义</span>
 </span><span id=__span-6-2><a id=__codelineno-6-2 name=__codelineno-6-2 href=#__codelineno-6-2></a><span class=k>def</span><span class=w> </span><span class=nf>get_user_service</span><span class=p>()</span> <span class=o>-&gt;</span> <span class=n>UserService</span><span class=p>:</span>
 </span><span id=__span-6-3><a id=__codelineno-6-3 name=__codelineno-6-3 href=#__codelineno-6-3></a>    <span class=k>return</span> <span class=n>UserService</span><span class=p>(</span><span class=n>user_repository</span><span class=p>)</span>
 </span><span id=__span-6-4><a id=__codelineno-6-4 name=__codelineno-6-4 href=#__codelineno-6-4></a>
