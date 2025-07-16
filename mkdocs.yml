@@ -157,9 +157,6 @@ nav:
 
 # Extra
 extra:
-  version:
-    provider: mike
-    default: stable
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/JiayuXu0/FastAPI-Template

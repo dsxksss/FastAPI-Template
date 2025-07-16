@@ -200,8 +200,8 @@ erDiagram
         datetime updated_at
     }
     
-    User }|--|| Role : user_roles
-    Role }|--|| Permission : role_permissions
+    User ||--o{ Role : user_roles
+    Role ||--o{ Permission : role_permissions
 ```
 
 ## 设计模式
