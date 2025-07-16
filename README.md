@@ -4,6 +4,8 @@
 
 **一个功能完整、架构清晰的企业级FastAPI后端模板，专为团队开发设计，开箱即用**
 
+**简体中文** | [English](README.en.md)
+
 <!-- 点赞区域 -->
 <div align="center">
   <a href="https://github.com/JiayuXu0/FastAPI-Template" target="_blank">

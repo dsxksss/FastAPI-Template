@@ -1,43 +1,23 @@
 ---
-name: 🚀 Feature Request
-about: 建议一个新功能或改进
+name: Feature Request / 功能请求
+about: Suggest an idea for this project / 为这个项目建议一个想法
 title: '[FEATURE] '
-labels: ['enhancement', 'needs-triage']
+labels: enhancement
 assignees: ''
 ---
 
-## 🚀 功能描述
-清楚简洁地描述您想要的功能。
+**Is your feature request related to a problem? Please describe. / 您的功能请求是否与问题相关？请描述。**
+A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+清晰简洁地描述问题是什么。例如：我总是对[...]感到沮丧
 
-## 💡 动机
-请描述这个功能解决的问题。例如：我总是在...时感到沮丧。
+**Describe the solution you'd like / 描述您想要的解决方案**
+A clear and concise description of what you want to happen.
+清晰简洁地描述您希望发生什么。
 
-## 🎯 建议的解决方案
-清楚简洁地描述您希望发生的事情。
+**Describe alternatives you've considered / 描述您考虑过的替代方案**
+A clear and concise description of any alternative solutions or features you've considered.
+清晰简洁地描述您考虑过的任何替代解决方案或功能。
 
-## 🔄 替代方案
-清楚简洁地描述您考虑过的任何替代解决方案或功能。
-
-## 📋 详细描述
-如果适用，请添加更多关于功能请求的详细信息。
-
-## 🎨 UI/UX 设计
-如果此功能涉及用户界面，请提供设计建议或草图。
-
-## 🔧 技术考虑
-- 是否需要数据库更改？
-- 是否需要API更改？
-- 是否会影响现有功能？
-- 性能影响？
-
-## ✅ 检查清单
-- [ ] 我已经搜索了现有的issues，确认这不是重复请求
-- [ ] 我已经考虑过这个功能如何适应项目的整体架构
-- [ ] 我已经考虑过这个功能对其他用户的影响
-- [ ] 我愿意贡献代码来实现这个功能（可选）
-
-## 📈 优先级
-请说明这个功能对您的重要性：
-- [ ] 低 - 这将是一个不错的补充
-- [ ] 中 - 这将显著改善我的工作流程
-- [ ] 高 - 没有这个功能我无法有效使用项目
+**Additional context / 附加信息**
+Add any other context or screenshots about the feature request here.
+在这里添加有关功能请求的任何其他信息或截图。
