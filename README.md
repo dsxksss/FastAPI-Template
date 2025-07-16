@@ -299,6 +299,70 @@ uv run uvicorn src:app --host 0.0.0.0 --port 8000 --workers 4
 
 详细步骤请参考 [CLAUDE.md](CLAUDE.md) 开发指南。
 
+### 📖 文档系统
+
+本项目集成了强大的文档系统，基于 **MkDocs Material** 构建，提供美观且功能完整的项目文档。
+
+#### ✨ 文档特性
+- **🤖 自动API文档生成** - 从FastAPI代码自动提取API信息
+- **📝 详细的参数说明** - 包含请求参数、响应格式、使用示例
+- **🎨 Material Design** - 现代化的UI设计，支持暗黑模式
+- **🔍 全文搜索** - 快速查找文档内容
+- **📱 响应式设计** - 完美支持移动端访问
+- **🌐 多语言支持** - 中英文文档
+
+#### 📂 文档结构
+```
+docs/
+├── index.md              # 📋 项目主页
+├── guide/                 # 🚀 快速开始指南
+├── architecture/          # 🏗️ 架构设计文档
+├── api/                   # 📚 API接口文档
+│   ├── index.md          # API总览
+│   ├── base.md           # 认证授权 (自动生成)
+│   ├── users.md          # 用户管理 (自动生成)
+│   ├── role.md           # 角色管理 (自动生成)
+│   └── ...               # 其他API模块
+├── changelog.md           # 📝 更新日志
+├── faq.md                # ❓ 常见问题
+└── gen_pages.py          # 🔧 文档生成脚本
+```
+
+#### 🚀 启动文档服务
+```bash
+# 安装文档依赖
+uv sync --group docs
+
+# 启动开发服务器 (支持热重载)
+uv run mkdocs serve
+
+# 构建静态文档
+uv run mkdocs build
+
+# 部署到GitHub Pages
+uv run mkdocs gh-deploy
+```
+
+#### 🔄 自动生成API文档
+```bash
+# 手动生成API文档 (通常自动执行)
+uv run python docs/gen_pages.py
+```
+
+#### 📋 API文档包含内容
+- **完整的参数表格** - 参数名、类型、是否必填、默认值、描述
+- **请求体结构** - Pydantic模型字段详情和JSON示例
+- **响应格式说明** - 成功/错误响应示例
+- **实用的代码示例** - cURL和Python requests使用示例
+- **认证要求** - Bearer Token使用说明
+
+#### 🌐 在线访问
+- **本地文档**: http://localhost:8000 (mkdocs serve)
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+> 💡 **提示**: API文档会随代码变更自动更新，确保文档与代码始终保持同步！
+
 ### 数据库操作
 
 ```bash
