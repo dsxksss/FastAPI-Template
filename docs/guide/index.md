@@ -206,7 +206,7 @@ DEFAULT_ADMIN_PASSWORD=your_new_password
 
 如果您在使用过程中遇到问题，可以：
 
-1. 查看 [常见问题](../faq.md)
-2. 搜索 [GitHub Issues](https://github.com/JiayuXu0/FastAPI-Template/issues)
-3. 创建新的 [Issue](https://github.com/JiayuXu0/FastAPI-Template/issues/new)
-4. 发送邮件至 admin@example.com
+1. 访问 [官网](http://fastapi.infyai.cn/) 获取最新文档
+2. 查看 [常见问题](../faq.md)
+3. 搜索 [GitHub Issues](https://github.com/JiayuXu0/FastAPI-Template/issues)
+4. 创建新的 [Issue](https://github.com/JiayuXu0/FastAPI-Template/issues/new)

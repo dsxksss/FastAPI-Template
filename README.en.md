@@ -26,7 +26,7 @@
   ⭐ <strong>Like this project? Give it a star!</strong> ⭐
 </p>
 
-[📖 Quick Start](#-quick-start) • [🏗️ Architecture](#-architecture) • [📚 Features](#-features) • [🤝 Contributing](CONTRIBUTING.md)
+[📖 Quick Start](#-quick-start) • [🏗️ Architecture](#-architecture) • [📚 Features](#-features) • [🌐 Website](http://fastapi.infyai.cn/) • [🤝 Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -108,6 +108,7 @@ uv run uvicorn src:app --reload --host 0.0.0.0 --port 8000
 
 ### Access the Application
 
+- **🌐 Website**: http://fastapi.infyai.cn/
 - **API Documentation**: http://localhost:8000/docs
 - **Alternative Docs**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/api/v1/base/health

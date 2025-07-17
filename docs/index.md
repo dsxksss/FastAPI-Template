@@ -158,9 +158,9 @@ uv run uvicorn src:app --reload --host 0.0.0.0 --port 8000
 
 ## 联系我们
 
+- **🌐 官网**: [http://fastapi.infyai.cn/](http://fastapi.infyai.cn/)
 - **GitHub**: [JiayuXu0/FastAPI-Template](https://github.com/JiayuXu0/FastAPI-Template)
 - **Issues**: [问题反馈](https://github.com/JiayuXu0/FastAPI-Template/issues)
-- **Email**: admin@example.com
 
 ---
 

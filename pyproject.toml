@@ -3,7 +3,7 @@ name = "evoai-backend-template"
 version = "1.0.0"
 description = "🚀 企业级FastAPI后端模板 - 开箱即用的三层架构，内置RBAC权限管理、文件管理等核心功能"
 authors = [
-    {name = "EvoAI Team", email = "admin@example.com"}
+    {name = "EvoAI Team"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
@@ -72,8 +72,8 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/JiayuXu0/FastAPI-Template"
-Documentation = "https://github.com/JiayuXu0/FastAPI-Template#readme"
+Homepage = "http://fastapi.infyai.cn/"
+Documentation = "http://fastapi.infyai.cn/"
 Repository = "https://github.com/JiayuXu0/FastAPI-Template.git"
 "Bug Tracker" = "https://github.com/JiayuXu0/FastAPI-Template/issues"
 "Source Code" = "https://github.com/JiayuXu0/FastAPI-Template"

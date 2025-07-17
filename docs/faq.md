@@ -228,7 +228,6 @@ async def test_create_user():
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/api/v1/users/create", json={
             "username": "testuser",
-            "email": "test@example.com",
             "password": "password123"
         })
     assert response.status_code == 200
@@ -411,9 +410,9 @@ def cache_result(expire_time=300):
 
 如果以上FAQ没有解决您的问题，您可以：
 
-1. 查看 [GitHub Issues](https://github.com/JiayuXu0/FastAPI-Template/issues)
-2. 创建新的 [Issue](https://github.com/JiayuXu0/FastAPI-Template/issues/new)
-3. 发送邮件至 admin@example.com
+1. 访问 [官网](http://fastapi.infyai.cn/) 获取最新文档
+2. 查看 [GitHub Issues](https://github.com/JiayuXu0/FastAPI-Template/issues)
+3. 创建新的 [Issue](https://github.com/JiayuXu0/FastAPI-Template/issues/new)
 4. 查看项目文档的其他部分
 
 ## 🤝 贡献指南

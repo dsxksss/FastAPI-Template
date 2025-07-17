@@ -129,6 +129,7 @@ uv run pytest --cov=src --cov-report=html
 
 ## ❓ 需要帮助？
 
+- 🌐 访问[官网](http://fastapi.infyai.cn/)获取最新文档
 - 📖 查看[CLAUDE.md](CLAUDE.md)开发指南
 - 🔍 搜索现有的issues
 - 💬 在discussions中提问

@@ -1,7 +1,7 @@
 site_name: FastAPI Backend Template
 site_description: 企业级FastAPI后端模板 - 开箱即用的三层架构，内置RBAC权限管理
 site_author: EvoAI Team
-site_url: https://fastapi-template.com
+site_url: http://fastapi.infyai.cn/
 copyright: Copyright &copy; 2024 EvoAI Team
 
 # Repository
@@ -158,6 +158,8 @@ nav:
 # Extra
 extra:
   social:
+    - icon: fontawesome/solid/globe
+      link: http://fastapi.infyai.cn/
     - icon: fontawesome/brands/github
       link: https://github.com/JiayuXu0/FastAPI-Template
     - icon: fontawesome/brands/twitter

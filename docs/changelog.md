@@ -226,10 +226,9 @@ systemctl restart fastapi-template
 
 如果您遇到问题或需要帮助：
 
-1. 📖 查看[文档](https://docs.example.com)
+1. 📖 查看[官网文档](http://fastapi.infyai.cn/)
 2. 🔍 搜索[已知问题](https://github.com/JiayuXu0/FastAPI-Template/issues)
 3. 💬 提交[新问题](https://github.com/JiayuXu0/FastAPI-Template/issues/new)
-4. 📧 联系邮箱: admin@example.com
 
 ### 许可证
 

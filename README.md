@@ -29,7 +29,7 @@
 [![RBAC](https://img.shields.io/badge/🔐_权限-RBAC-red.svg)](#)
 [![Docker](https://img.shields.io/badge/🐳_容器-Docker-blue.svg)](https://www.docker.com/)
 
-[📖 快速开始](#-快速开始) • [🏗️ 架构说明](#-架构说明) • [📚 开发指南](CLAUDE.md) • [📖 完整文档](https://jiayuxu0.github.io/FastAPI-Template/) • [🤝 贡献指南](CONTRIBUTING.md) • [🌟 给个Star!](https://github.com/JiayuXu0/FastAPI-Template)
+[📖 快速开始](#-快速开始) • [🏗️ 架构说明](#-架构说明) • [📚 开发指南](CLAUDE.md) • [🌐 官网文档](http://fastapi.infyai.cn/) • [🤝 贡献指南](CONTRIBUTING.md) • [🌟 给个Star!](https://github.com/JiayuXu0/FastAPI-Template)
 
 </div>
 
@@ -218,7 +218,7 @@ uv run uvicorn src:app --host 0.0.0.0 --port 8000 --workers 4
 
 ### 5. 访问服务
 
-- **📖 完整文档**: https://jiayuxu0.github.io/FastAPI-Template/
+- **🌐 官网文档**: http://fastapi.infyai.cn/
 - **API文档**: http://localhost:8000/docs
 - **替代文档**: http://localhost:8000/redoc
 - **健康检查**: http://localhost:8000/api/v1/base/health
@@ -230,7 +230,6 @@ uv run uvicorn src:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 用户名: admin
 密码: abcd1234
-邮箱: admin@admin.com
 ```
 
 **🚨 首次登录后立即修改密码！**
@@ -358,7 +357,7 @@ uv run python docs/gen_pages.py
 - **认证要求** - Bearer Token使用说明
 
 #### 🌐 在线访问
-- **📖 完整文档**: https://jiayuxu0.github.io/FastAPI-Template/
+- **🌐 官网文档**: http://fastapi.infyai.cn/
 - **本地文档**: http://localhost:8000 (mkdocs serve)
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
@@ -590,7 +589,7 @@ uv run aerich init-db && uv run uvicorn src:app --reload
 [![GitHub Issues](https://img.shields.io/github/issues/JiayuXu0/FastAPI-Template?color=green&logo=github)](https://github.com/JiayuXu0/FastAPI-Template/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/JiayuXu0/FastAPI-Template?color=orange&logo=github)](https://github.com/JiayuXu0/FastAPI-Template/pulls)
 
-[💬 讨论交流](https://github.com/JiayuXu0/FastAPI-Template/discussions) • [🐛 报告问题](https://github.com/JiayuXu0/FastAPI-Template/issues) • [🔀 提交PR](https://github.com/JiayuXu0/FastAPI-Template/pulls) • [📧 联系作者](mailto:jiayuxu@example.com)
+[💬 讨论交流](https://github.com/JiayuXu0/FastAPI-Template/discussions) • [🐛 报告问题](https://github.com/JiayuXu0/FastAPI-Template/issues) • [🔀 提交PR](https://github.com/JiayuXu0/FastAPI-Template/pulls)
 
 </div>
 
