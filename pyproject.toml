@@ -9,7 +9,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 keywords = [
-    "fastapi", "backend", "template", "enterprise", "rbac", 
+    "fastapi", "backend", "template", "enterprise", "rbac",
     "三层架构", "权限管理", "UV", "python", "async", "jwt",
     "tortoise-orm", "postgresql", "sqlite", "docker", "ci-cd",
     "microservices", "api", "authentication", "authorization",
@@ -202,6 +202,7 @@ dev = [
     "pytest-asyncio>=1.0.0",
     "pytest-cov>=6.2.1",
     "ruff>=0.12.3",
+    "pre-commit>=3.0.0",
 ]
 
 docs = [
@@ -219,4 +220,3 @@ docs = [
     "mkdocs-redirects>=1.2.0",
     "pymdown-extensions>=10.0.0",
 ]
-
