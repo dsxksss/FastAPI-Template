@@ -6,11 +6,7 @@ from tortoise.expressions import Q
 
 from repositories import role_repository
 from schemas.base import Success, SuccessExtra
-from schemas.roles import (
-    RoleCreate,
-    RoleUpdate,
-    RoleUpdateMenusApis,
-)
+from schemas.roles import RoleCreate, RoleUpdate, RoleUpdateMenusApis
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

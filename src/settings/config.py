@@ -158,6 +158,7 @@ class Settings(BaseSettings):
     def validate_swagger_password(cls, v):
         """验证Swagger访问密码"""
         import os
+
         # 测试环境允许空密码
         if os.getenv("APP_ENV") == "testing":
             return v or "test_password"

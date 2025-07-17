@@ -11,12 +11,12 @@ graph TB
     Service --> Repository[数据访问层]
     Repository --> Model[数据模型层]
     Model --> Database[(数据库)]
-    
+
     Router --> Auth[认证中间件]
     Router --> Validation[数据验证]
     Service --> Permission[权限控制]
     Service --> Cache[缓存层]
-    
+
     style Client fill:#e1f5fe
     style Router fill:#fff3e0
     style Service fill:#f3e5f5
@@ -88,10 +88,10 @@ class UserService:
         # 业务逻辑验证
         if await self.user_repo.exists(email=user_data.email):
             raise ValueError("邮箱已存在")
-        
+
         # 密码加密
         user_data.password = hash_password(user_data.password)
-        
+
         # 创建用户
         return await self.user_repo.create(user_data)
 ```
@@ -108,7 +108,7 @@ class UserService:
 class UserRepository:
     async def create(self, user_data: UserCreate) -> User:
         return await User.create(**user_data.dict())
-    
+
     async def get_by_id(self, user_id: int) -> Optional[User]:
         return await User.get_or_none(id=user_id)
 ```
@@ -126,7 +126,7 @@ class User(BaseModel, TimestampMixin):
     id = fields.IntField(pk=True)
     username = fields.CharField(max_length=50, unique=True)
     email = fields.CharField(max_length=100, unique=True)
-    
+
     # 关系定义
     roles = fields.ManyToManyField("models.Role", related_name="users")
 ```
@@ -143,7 +143,7 @@ sequenceDiagram
     participant Auth
     participant Service
     participant DB
-    
+
     Client->>API: 登录请求
     API->>Auth: 验证凭据
     Auth->>Service: 用户验证
@@ -163,7 +163,7 @@ graph LR
     Role --> Permission[权限]
     Permission --> API[API端点]
     Permission --> Menu[菜单]
-    
+
     User --> Dept[部门]
     Dept --> Role
 ```
@@ -182,7 +182,7 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
+
     Role {
         int id PK
         string name
@@ -190,7 +190,7 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
+
     Permission {
         int id PK
         string name
@@ -199,7 +199,7 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-    
+
     User ||--o{ Role : user_roles
     Role ||--o{ Permission : role_permissions
 ```
@@ -230,10 +230,10 @@ async def create_user(
 class BaseRepository:
     def __init__(self, model: Type[Model]):
         self.model = model
-    
+
     async def create(self, data: dict) -> Model:
         return await self.model.create(**data)
-    
+
     async def get_by_id(self, id: int) -> Optional[Model]:
         return await self.model.get_or_none(id=id)
 ```
@@ -245,7 +245,7 @@ class BaseRepository:
 class BaseService:
     def __init__(self, repository: BaseRepository):
         self.repository = repository
-    
+
     async def create(self, data: BaseModel) -> Model:
         # 业务逻辑处理
         validated_data = self.validate_data(data)

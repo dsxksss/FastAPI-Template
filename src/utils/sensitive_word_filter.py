@@ -71,7 +71,7 @@ class SensitiveWordFilter:
 
             # 使用自动机进行匹配
             for end_index, (
-                insert_order,
+                _,
                 original_word,
             ) in self.automaton.iter(text_lower):
                 logger.warning(
@@ -141,9 +141,10 @@ class SensitiveWordFilter:
 
                         # 如果有文本内容需要检查
                         if text_to_check:
-                            contains_sensitive, matched_word = (
-                                self.contains_sensitive_word(text_to_check)
-                            )
+                            (
+                                contains_sensitive,
+                                matched_word,
+                            ) = self.contains_sensitive_word(text_to_check)
 
                             if contains_sensitive:
                                 logger.warning(

@@ -51,10 +51,10 @@ def verify_token(token: str, token_type: str = "access") -> JWTPayload:
 
         return JWTPayload(**payload)
 
-    except jwt.ExpiredSignatureError:
-        raise jwt.ExpiredSignatureError("Token has expired")
-    except jwt.InvalidTokenError:
-        raise jwt.InvalidTokenError("Invalid token")
+    except jwt.ExpiredSignatureError as e:
+        raise jwt.ExpiredSignatureError("Token has expired") from e
+    except jwt.InvalidTokenError as e:
+        raise jwt.InvalidTokenError("Invalid token") from e
 
 
 def create_token_pair(

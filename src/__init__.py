@@ -16,8 +16,8 @@ from core.init_app import (
 
 try:
     from settings.config import settings
-except ImportError:
-    raise SettingNotFound("Can not import settings")
+except ImportError as e:
+    raise SettingNotFound("Can not import settings") from e
 
 
 @asynccontextmanager
@@ -67,7 +67,7 @@ def create_app() -> FastAPI:
             description=app.description,
             routes=app.routes,
         )
-        
+
         return openapi_schema
 
     register_exceptions(app)

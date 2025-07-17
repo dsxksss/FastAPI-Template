@@ -192,7 +192,7 @@ Perfect for building scalable APIs! ⭐
 • 完整的测试覆盖
 • Docker 部署就绪
 
-企业级项目的不二选择！⭐ 
+企业级项目的不二选择！⭐
 
 #FastAPI #Python #后端开发 #开源
 ```

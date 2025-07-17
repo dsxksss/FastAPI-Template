@@ -34,14 +34,14 @@ def get_current_username(
 
 class AuthControl:
     @classmethod
-    async def is_authed(
-        cls, token: str = Depends(bearer_scheme)
-    ) -> Optional["User"]:
+    async def is_authed(cls, token: str = Depends(bearer_scheme)) -> Optional["User"]:
         try:
             # 直接使用 HTTPBearer 提供的 token (已经去掉了 Bearer 前缀)
             if not token:
-                raise HTTPException(status_code=401, detail="Missing authentication token")
-            
+                raise HTTPException(
+                    status_code=401, detail="Missing authentication token"
+                )
+
             decode_data = jwt.decode(
                 token.credentials,
                 settings.SECRET_KEY,
@@ -53,13 +53,13 @@ class AuthControl:
                 raise HTTPException(status_code=401, detail="Authentication failed")
             CTX_USER_ID.set(int(user_id))
             return user
-        except jwt.DecodeError:
-            raise HTTPException(status_code=401, detail="无效的Token")
-        except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="登录已过期")
-        except Exception:
+        except jwt.DecodeError as e:
+            raise HTTPException(status_code=401, detail="无效的Token") from e
+        except jwt.ExpiredSignatureError as e:
+            raise HTTPException(status_code=401, detail="登录已过期") from e
+        except Exception as e:
             # 记录详细错误信息到日志，但不返回给用户
-            raise HTTPException(status_code=401, detail="认证失败")
+            raise HTTPException(status_code=401, detail="认证失败") from e
 
 
 class PermissionControl:
@@ -144,8 +144,8 @@ class AgentPermissionControl:
 
         try:
             agent_id = int(agent_id)
-        except (ValueError, TypeError):
-            raise HTTPException(status_code=400, detail="无效的智能体ID")
+        except (ValueError, TypeError) as e:
+            raise HTTPException(status_code=400, detail="无效的智能体ID") from e
 
         # 获取用户角色
         roles: list[Role] = await current_user.roles.all()

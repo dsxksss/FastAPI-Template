@@ -1,14 +1,14 @@
 import os
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from repositories.user import user_repository
 from core.ctx import CTX_USER_ID
 from core.dependency import DependAuth
 from models.admin import User
+from repositories.user import user_repository
 from schemas.base import Fail, Success
 from schemas.login import (
     CredentialsSchema,
@@ -27,12 +27,16 @@ router = APIRouter()
 
 def apply_rate_limit(rate="5/minute"):
     """根据环境应用限流装饰器"""
+
     def decorator(func):
         import os
+
         if os.getenv("TESTING", "false").lower() == "true":
             return func  # 测试环境不应用限流
         return limiter.limit(rate)(func)
+
     return decorator
+
 
 @router.post("/access_token", summary="获取token")
 @apply_rate_limit()

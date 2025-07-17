@@ -5,10 +5,10 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
-from repositories.file_mapping import file_mapping_repository
-from repositories.user import user_repository
 from core.ctx import CTX_USER_ID
 from log import logger
+from repositories.file_mapping import file_mapping_repository
+from repositories.user import user_repository
 from schemas.base import Success
 
 # 文件安全配置
@@ -142,7 +142,7 @@ class FileService:
             raise
         except Exception as e:
             self.logger.error(f"文件上传失败: {str(e)}")
-            raise HTTPException(status_code=500, detail="文件上传失败")
+            raise HTTPException(status_code=500, detail="文件上传失败") from e
 
     async def _authenticate_user(self):
         """验证用户身份"""

@@ -255,7 +255,7 @@ A: Nginx配置示例：
 server {
     listen 80;
     server_name your-domain.com;
-    
+
     location / {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
@@ -398,7 +398,7 @@ def cache_result(expire_time=300):
             cached = redis_client.get(cache_key)
             if cached:
                 return json.loads(cached)
-            
+
             result = await func(*args, **kwargs)
             redis_client.setex(cache_key, expire_time, json.dumps(result))
             return result

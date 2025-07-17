@@ -1,5 +1,6 @@
 import os
 import sys
+
 from settings.config import settings
 
 # 添加src目录到Python路径

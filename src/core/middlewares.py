@@ -7,10 +7,7 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import Response, StreamingResponse
 from fastapi.routing import APIRoute
-from starlette.middleware.base import (
-    BaseHTTPMiddleware,
-    RequestResponseEndpoint,
-)
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -59,9 +56,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # 仅在HTTPS环境下添加HSTS头
         if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains"
-            )
+            response.headers[
+                "Strict-Transport-Security"
+            ] = "max-age=31536000; includeSubDomains"
 
         return response
 
@@ -181,7 +178,7 @@ class HttpAuditLogMiddleware(BaseHTTPMiddleware):
         return self.lenient_json(body)
 
     def lenient_json(self, v: Any) -> Any:
-        if isinstance(v, (str, bytes)):
+        if isinstance(v, str | bytes):
             try:
                 return json.loads(v)
             except (ValueError, TypeError):

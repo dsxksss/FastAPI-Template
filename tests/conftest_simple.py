@@ -2,16 +2,15 @@
 
 import asyncio
 import os
-import tempfile
 import sys
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
-from httpx import AsyncClient
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 
 # 添加src到路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 @pytest.fixture(scope="session")
@@ -36,13 +35,14 @@ def test_settings():
 def mock_app(test_settings):
     """模拟应用，避免Redis依赖"""
     from unittest.mock import Mock, patch
-    
+
     # Mock Redis相关模块
-    with patch('src.utils.cache.redis') as mock_redis:
+    with patch("src.utils.cache.redis") as mock_redis:
         mock_redis.from_url.return_value = Mock()
-        
+
         # 导入并创建应用
         from src import app
+
         yield app
 
 
@@ -64,15 +64,13 @@ async def async_client(mock_app) -> AsyncGenerator[AsyncClient, None]:
 def sample_jwt_token():
     """样例JWT令牌"""
     from utils.jwt import create_token_pair
-    
+
     access_token, refresh_token = create_token_pair(
-        user_id=1,
-        username="test_user",
-        is_superuser=True
+        user_id=1, username="test_user", is_superuser=True
     )
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
-        "headers": {"Authorization": f"Bearer {access_token}"}
+        "headers": {"Authorization": f"Bearer {access_token}"},
     }
