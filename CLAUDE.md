@@ -57,19 +57,35 @@ uv run pytest --cov=src --cov-report=html
 ```
 
 ### Code Quality
+
+#### 🔧 Pre-commit Hooks (自动化)
 ```bash
-# Format code with black
-uv run black src/
+# hooks 会在 uv sync 时自动安装并配置
+# 每次 git commit 时自动运行，确保代码质量
 
-# Sort imports
-uv run isort src/
+# 手动运行所有检查
+uv run pre-commit run --all-files
 
-# Run linter
-uv run ruff check src/
+# 禁用 hooks (如不需要)
+uv run pre-commit uninstall
 
-# Type checking
+# 跳过单次检查 (紧急提交)
+git commit --no-verify -m "urgent fix"
+```
+
+#### ⚙️ 手动检查命令
+```bash
+# 代码检查和自动修复 (替代 black + isort)
+uv run ruff check --fix src/
+
+# 代码格式化
+uv run ruff format src/
+
+# 类型检查 (可选)
 uv run mypy src/
 ```
+
+📖 **详细配置**: 查看 [docs/pre-commit-guide.md](docs/pre-commit-guide.md)
 
 ### Docker Operations
 ```bash
