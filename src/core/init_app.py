@@ -1,4 +1,3 @@
-import shutil
 from functools import partial
 
 from aerich import Command
@@ -220,12 +219,12 @@ async def init_db():
     await command.init()
     try:
         await command.migrate(no_input=True)
-    except AttributeError:
-        logger.warning(
-            "unable to retrieve model history from database, model history will be created from scratch"
-        )
-        shutil.rmtree("migrations")
-        await command.init_db(safe=True)
+    except AttributeError as e:
+        logger.error(f"数据库迁移失败: {e}")
+        logger.warning("请手动检查数据库和migrations状态")
+        # 不再自动删除migrations文件夹，避免意外丢失迁移历史
+        # 如需重置migrations，请手动执行：rm -rf migrations && uv run aerich init-db
+        raise RuntimeError("数据库迁移失败，请检查数据库连接和migrations状态") from e
 
     await command.upgrade(run_in_transaction=True)
 
