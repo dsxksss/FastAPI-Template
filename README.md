@@ -152,7 +152,58 @@ evoai-backend-template/
 
 ## 🚀 快速开始
 
-### 1. 环境准备
+### ⚡ 一键创建项目 (推荐)
+
+**🎉 全新脚手架工具 `create-fastapi-app` 已发布！**
+
+<div align="center">
+
+<a href="https://github.com/JiayuXu0/create-fastapi-app" target="_blank">
+  <img src="https://img.shields.io/badge/🚀_create--fastapi--app-一键创建FastAPI项目-00D8FF?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=009688&color=00D8FF" alt="create-fastapi-app">
+</a>
+
+<a href="https://github.com/JiayuXu0/create-fastapi-app" target="_blank">
+  <img src="https://img.shields.io/badge/⭐_Star项目-支持开发-FFD700?style=for-the-badge&logo=github&logoColor=white&labelColor=FF6B6B&color=FFD700" alt="Star create-fastapi-app">
+</a>
+
+**⭐ 如果觉得有用，请给 [create-fastapi-app](https://github.com/JiayuXu0/create-fastapi-app) 点个 Star 支持一下！⭐**
+
+</div>
+
+```bash
+# 🚀 使用 npx (推荐)
+npx create-fastapi-app@latest my-awesome-backend
+
+# 🚀 使用 npm
+npm create fastapi-app@latest my-awesome-backend
+
+# 🚀 使用 yarn
+yarn create fastapi-app my-awesome-backend
+
+# 🚀 使用 pnpm
+pnpm create fastapi-app my-awesome-backend
+```
+
+**✨ 脚手架优势：**
+- 🎯 **交互式创建** - 友好的命令行界面，一步步引导配置
+- 🔧 **智能配置** - 自动生成 `.env` 文件和数据库配置
+- 📦 **模板丰富** - 基础版、完整版、微服务版等多种选择
+- 🚀 **开箱即用** - 生成后立即可运行，零配置启动
+- 🛠️ **工具集成** - 预配置代码检查、格式化、测试等开发工具
+
+> 💡 **强烈推荐使用脚手架工具！比手动配置快 10 倍！**
+>
+> 🔗 **项目地址**：https://github.com/JiayuXu0/create-fastapi-app
+>
+> ⭐ **别忘了给脚手架项目点个 Star 哦！你的支持是我们持续改进的动力！**
+
+---
+
+### 💻 手动安装 (传统方式)
+
+如果你更喜欢手动配置或需要深度自定义：
+
+#### 1. 环境准备
 
 ```bash
 # 安装UV包管理器
@@ -565,6 +616,17 @@ git commit --no-verify -m "urgent fix"
 </div>
 
 ### 🚀 快速上手
+
+**🎯 方式一：脚手架创建 (推荐)**
+```bash
+npx create-fastapi-app@latest my-project
+cd my-project && uv run uvicorn src:app --reload
+# 🎉 2分钟内即可启动完整的企业级后端服务！
+```
+
+**⭐ 别忘了给脚手架点 Star：https://github.com/JiayuXu0/create-fastapi-app**
+
+**📦 方式二：模板克隆**
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 git clone https://github.com/JiayuXu0/FastAPI-Template.git
@@ -596,11 +658,24 @@ uv run aerich init-db && uv run uvicorn src:app --reload
 
 ### 🚀 支持项目发展
 
-如果这个项目对你有帮助，请给我们一个Star⭐
+#### ⭐ 给模板项目点个 Star
+如果这个模板对你有帮助，请给我们一个Star⭐
 
 <a href="https://github.com/JiayuXu0/FastAPI-Template" target="_blank">
-  <img src="https://img.shields.io/badge/⭐_立即Star-支持项目-FFD700?style=for-the-badge&logo=github&logoColor=white&labelColor=FF6B6B&color=FFD700" alt="立即Star">
+  <img src="https://img.shields.io/badge/⭐_立即Star-支持模板-FFD700?style=for-the-badge&logo=github&logoColor=white&labelColor=FF6B6B&color=FFD700" alt="立即Star模板">
 </a>
+
+#### 🚀 也别忘了 create-fastapi-app 脚手架
+**更重要的是，也给我们的脚手架工具点个 Star！**
+
+<a href="https://github.com/JiayuXu0/create-fastapi-app" target="_blank">
+  <img src="https://img.shields.io/badge/⭐_Star脚手架-create--fastapi--app-00D8FF?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=009688&color=00D8FF" alt="Star脚手架">
+</a>
+
+**🎯 为什么要 Star 脚手架项目？**
+- 🚀 让更多开发者发现这个便利工具
+- 💪 激励我们持续改进和添加新功能
+- 🌟 你的支持是开源项目发展的动力
 
 </div>
 
