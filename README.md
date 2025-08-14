@@ -241,11 +241,11 @@ PROJECT_NAME=YourProject
 
 # 数据库配置 (开发环境推荐SQLite)
 DB_ENGINE=sqlite
-DB_PASSWORD=your_strong_password
+DB_PASSWORD=2546
 
 # API文档保护
 SWAGGER_UI_USERNAME=admin
-SWAGGER_UI_PASSWORD=your_strong_password
+SWAGGER_UI_PASSWORD=2546
 
 # CORS配置
 CORS_ORIGINS=http://localhost:3000,http://localhost:8080
@@ -261,19 +261,19 @@ uv run aerich init-db
 
 ```bash
 # 开发模式
-uv run uvicorn src:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn src:app --reload --host 0.0.0.0 --port 25466
 
 # 生产模式
-uv run uvicorn src:app --host 0.0.0.0 --port 8000 --workers 4
+uv run uvicorn src:app --host 0.0.0.0 --port 25466 --workers 4
 ```
 
 ### 5. 访问服务
 
 - **🌐 官网文档**: http://fastapi.infyai.cn/
-- **API文档**: http://localhost:8000/docs
-- **替代文档**: http://localhost:8000/redoc
-- **健康检查**: http://localhost:8000/api/v1/base/health
-- **版本信息**: http://localhost:8000/api/v1/base/version
+- **API文档**: http://localhost:25466/docs
+- **替代文档**: http://localhost:25466/redoc
+- **健康检查**: http://localhost:25466/api/v1/base/health
+- **版本信息**: http://localhost:25466/api/v1/base/version
 - **系统状态**: 实时监控系统运行状态
 
 ### 6. 默认账号
@@ -409,9 +409,9 @@ uv run python docs/gen_pages.py
 
 #### 🌐 在线访问
 - **🌐 官网文档**: http://fastapi.infyai.cn/
-- **本地文档**: http://localhost:8000 (mkdocs serve)
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **本地文档**: http://localhost:25466 (mkdocs serve)
+- **Swagger UI**: http://localhost:25466/docs
+- **ReDoc**: http://localhost:25466/redoc
 
 > 💡 **提示**: API文档会随代码变更自动更新，确保文档与代码始终保持同步！
 
