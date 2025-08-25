@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from fastapi import APIRouter, Query
@@ -5,12 +6,12 @@ from tortoise.expressions import Q
 
 from models.admin import AuditLog
 from schemas import SuccessExtra
-from schemas.apis import *
+from schemas.response import AuditLogListResponse
 
 router = APIRouter()
 
 
-@router.get("/list", summary="查看操作日志")
+@router.get("/list", summary="查看操作日志", response_model=AuditLogListResponse)
 async def get_audit_log_list(
     page: int = Query(1, description="页码"),
     page_size: int = Query(10, description="每页数量"),
@@ -48,4 +49,5 @@ async def get_audit_log_list(
     )
     total = await AuditLog.filter(q).count()
     data = [await audit_log.to_dict() for audit_log in audit_log_objs]
-    return SuccessExtra(data=data, total=total, page=page, page_size=page_size)
+    result = SuccessExtra(data=data, total=total, page=page, page_size=page_size)
+    return json.loads(result.body)

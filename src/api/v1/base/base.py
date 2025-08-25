@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import UTC, datetime
 
@@ -16,6 +17,14 @@ from schemas.login import (
     RefreshTokenRequest,
     TokenRefreshOut,
 )
+from schemas.response import (
+    CurrentUserResponse,
+    HealthInfo,
+    HealthResponse,
+    TokenResponse,
+    VersionInfo,
+    VersionResponse,
+)
 from settings import settings
 from utils.jwt import create_token_pair, verify_token
 
@@ -29,7 +38,6 @@ def apply_rate_limit(rate="5/minute"):
     """根据环境应用限流装饰器"""
 
     def decorator(func):
-        import os
 
         if os.getenv("TESTING", "false").lower() == "true":
             return func  # 测试环境不应用限流
@@ -38,7 +46,7 @@ def apply_rate_limit(rate="5/minute"):
     return decorator
 
 
-@router.post("/access_token", summary="获取token")
+@router.post("/access_token", summary="获取token", response_model=TokenResponse)
 @apply_rate_limit()
 async def login_access_token(request: Request, credentials: CredentialsSchema):
     user: User = await user_repository.authenticate(credentials)
@@ -55,10 +63,11 @@ async def login_access_token(request: Request, credentials: CredentialsSchema):
         username=user.username,
         expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
-    return Success(data=data.model_dump())
+    result = Success(data=data.model_dump())
+    return json.loads(result.body)
 
 
-@router.post("/refresh_token", summary="刷新token")
+@router.post("/refresh_token", summary="刷新token", response_model=TokenResponse)
 @apply_rate_limit("10/minute")
 async def refresh_access_token(request: Request, refresh_request: RefreshTokenRequest):
     """
@@ -84,43 +93,45 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
             expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
 
-        return Success(data=data.model_dump())
+        result = Success(data=data.model_dump())
+        return json.loads(result.body)
 
     except Exception:
-        return Fail(code=401, msg="令牌无效或已过期")
+        result = Fail(code=401, msg="令牌无效或已过期")
+        return json.loads(result.body)
 
 
-@router.get("/userinfo", summary="查看用户信息")
+@router.get("/userinfo", summary="查看用户信息", response_model=CurrentUserResponse)
 async def get_userinfo(current_user: User = DependAuth):
     user_id = CTX_USER_ID.get()
     user_obj = await user_repository.get(id=user_id)
     user_dict = await user_obj.to_dict()
-    return Success(data=user_dict)
+    result = Success(data=user_dict)
+    return json.loads(result.body)
 
 
-@router.get("/health", summary="健康检查")
+@router.get("/health", summary="健康检查", response_model=HealthResponse)
 async def health_check():
     """系统健康检查"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now(UTC).isoformat(),
-        "version": settings.VERSION,
-        "environment": settings.APP_ENV,
-        "service": "FastAPI Backend Template",
-    }
+    health_data = HealthInfo(
+        status="healthy",
+        timestamp=datetime.now(UTC),
+        environment=settings.APP_ENV,
+        database="connected"
+    )
+    return HealthResponse(code=200, msg="OK", data=health_data)
 
 
-@router.get("/version", summary="版本信息")
+@router.get("/version", summary="版本信息", response_model=VersionResponse)
 async def get_version():
     """获取API版本信息"""
-    return {
-        "version": settings.VERSION,
-        "app_title": settings.APP_TITLE,
-        "project_name": settings.PROJECT_NAME,
-        "build": os.getenv("BUILD_NUMBER", "dev"),
-        "commit": os.getenv("GIT_COMMIT", "unknown"),
-        "python_version": os.getenv("PYTHON_VERSION", "3.11+"),
-    }
+    version_data = VersionInfo(
+        app_name=settings.APP_TITLE,
+        version=settings.VERSION,
+        api_version="v1",
+        environment=settings.APP_ENV
+    )
+    return VersionResponse(code=200, msg="OK", data=version_data)
 
 
 # @router.get("/usermenu", summary="查看用户菜单", dependencies=[DependAuth])

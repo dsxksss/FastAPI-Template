@@ -1,3 +1,4 @@
+import json
 import logging
 
 from fastapi import APIRouter, Query
@@ -5,13 +6,18 @@ from fastapi import APIRouter, Query
 from repositories.menu import menu_repository
 from schemas.base import Fail, Success, SuccessExtra
 from schemas.menus import *
+from schemas.response import (
+    MenuDetailResponse,
+    MenuListResponse,
+    ResponseBase,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.get("/list", summary="查看菜单列表")
+@router.get("/list", summary="查看菜单列表", response_model=MenuListResponse)
 async def list_menu(
     page: int = Query(1, description="页码"),
     page_size: int = Query(10, description="每页数量"),
@@ -29,41 +35,47 @@ async def list_menu(
 
     parent_menus = await menu_repository.model.filter(parent_id=0).order_by("order")
     res_menu = [await get_menu_with_children(menu.id) for menu in parent_menus]
-    return SuccessExtra(
+    result = SuccessExtra(
         data=res_menu, total=len(res_menu), page=page, page_size=page_size
     )
+    return json.loads(result.body)
 
 
-@router.get("/get", summary="查看菜单")
+@router.get("/get", summary="查看菜单", response_model=MenuDetailResponse)
 async def get_menu(
     menu_id: int = Query(..., description="菜单id"),
 ):
-    result = await menu_repository.get(id=menu_id)
-    return Success(data=result)
+    result_data = await menu_repository.get(id=menu_id)
+    result = Success(data=result_data)
+    return json.loads(result.body)
 
 
-@router.post("/create", summary="创建菜单")
+@router.post("/create", summary="创建菜单", response_model=ResponseBase[None])
 async def create_menu(
     menu_in: MenuCreate,
 ):
     await menu_repository.create(obj_in=menu_in)
-    return Success(msg="Created Success")
+    result = Success(msg="Created Success")
+    return json.loads(result.body)
 
 
-@router.post("/update", summary="更新菜单")
+@router.post("/update", summary="更新菜单", response_model=ResponseBase[None])
 async def update_menu(
     menu_in: MenuUpdate,
 ):
     await menu_repository.update(id=menu_in.id, obj_in=menu_in)
-    return Success(msg="Updated Success")
+    result = Success(msg="Updated Success")
+    return json.loads(result.body)
 
 
-@router.delete("/delete", summary="删除菜单")
+@router.delete("/delete", summary="删除菜单", response_model=ResponseBase[None])
 async def delete_menu(
     id: int = Query(..., description="菜单id"),
 ):
     child_menu_count = await menu_repository.model.filter(parent_id=id).count()
     if child_menu_count > 0:
-        return Fail(msg="Cannot delete a menu with child menus")
+        result = Fail(msg="Cannot delete a menu with child menus")
+        return json.loads(result.body)
     await menu_repository.remove(id=id)
-    return Success(msg="Deleted Success")
+    result = Success(msg="Deleted Success")
+    return json.loads(result.body)
