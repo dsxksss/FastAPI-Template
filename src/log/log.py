@@ -1,5 +1,7 @@
 import os
 import sys
+import json
+from typing import Any, Dict
 
 from loguru import logger as loguru_logger
 
@@ -37,6 +39,15 @@ class LoggingConfig:
             "{name}:{function}:{line} | "
             "{message}"
         )
+    
+    def get_detailed_error_format(self):
+        """获取详细错误日志格式"""
+        return (
+            "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
+            "{level: <8} | "
+            "{name}:{function}:{line} | "
+            "{message}\n"
+        )
 
     def setup_logger(self):
         """配置日志输出"""
@@ -66,13 +77,26 @@ class LoggingConfig:
             diagnose=True,
         )
 
-        # 错误日志单独文件
+        # 错误日志单独文件 - 使用详细格式
         loguru_logger.add(
             sink=f"{self.log_dir}/backend_error_{{time:YYYY-MM-DD}}.log",
             level="ERROR",
-            format=self.get_file_format(),
+            format=self.get_detailed_error_format(),
             rotation="50 MB",
             retention="90 days",
+            compression="zip",
+            encoding="utf-8",
+            backtrace=True,
+            diagnose=True,
+        )
+        
+        # 关键错误日志（CRITICAL级别）
+        loguru_logger.add(
+            sink=f"{self.log_dir}/backend_critical_{{time:YYYY-MM-DD}}.log",
+            level="CRITICAL",
+            format=self.get_detailed_error_format(),
+            rotation="10 MB",
+            retention="180 days",
             compression="zip",
             encoding="utf-8",
             backtrace=True,

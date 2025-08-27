@@ -13,6 +13,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from core.dependency import AuthControl
 from log import logger
+from log.context import LogContext
 from models.admin import AuditLog, User
 
 from .bgtask import BgTasks
@@ -261,18 +262,26 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         """处理请求并记录日志"""
         start_time = datetime.now()
+        
+        # 设置请求级上下文信息
+        request_id = LogContext.set_request_id()
+        LogContext.update_context(
+            method=request.method,
+            path=request.url.path,
+            url=str(request.url),
+            query_params=dict(request.query_params),
+            client_ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            content_type=request.headers.get("content-type"),
+            content_length=request.headers.get("content-length"),
+            start_time=start_time.isoformat(),
+        )
+
+        # 获取带上下文的logger
+        context_logger = LogContext.get_logger()
 
         # 记录请求开始
-        logger.info(
-            f"请求开始: {request.method} {request.url.path}",
-            extra={
-                "method": request.method,
-                "path": request.url.path,
-                "query_params": dict(request.query_params),
-                "client_ip": request.client.host if request.client else None,
-                "user_agent": request.headers.get("user-agent"),
-            },
-        )
+        context_logger.info(f"请求开始: {request.method} {request.url.path}")
 
         try:
             response = await call_next(request)
@@ -280,16 +289,18 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             # 计算处理时间
             end_time = datetime.now()
             process_time = (end_time - start_time).total_seconds() * 1000
+            
+            # 更新上下文信息
+            LogContext.update_context(
+                status_code=response.status_code,
+                process_time_ms=process_time,
+                end_time=end_time.isoformat(),
+                response_headers=dict(response.headers),
+            )
 
             # 记录请求完成
-            logger.info(
-                f"请求完成: {request.method} {request.url.path} - {response.status_code} ({process_time:.2f}ms)",
-                extra={
-                    "method": request.method,
-                    "path": request.url.path,
-                    "status_code": response.status_code,
-                    "process_time_ms": process_time,
-                },
+            context_logger.info(
+                f"请求完成: {request.method} {request.url.path} - {response.status_code} ({process_time:.2f}ms)"
             )
 
             return response
@@ -298,16 +309,23 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             # 计算处理时间
             end_time = datetime.now()
             process_time = (end_time - start_time).total_seconds() * 1000
+            
+            # 更新上下文信息
+            LogContext.update_context(
+                exception_occurred=True,
+                exception_type=type(e).__name__,
+                exception_msg=str(e),
+                process_time_ms=process_time,
+                end_time=end_time.isoformat(),
+                traceback=traceback.format_exc()
+            )
 
-            # 记录请求异常
-            logger.error(
-                f"请求异常: {request.method} {request.url.path} - {str(e)} ({process_time:.2f}ms)",
-                extra={
-                    "method": request.method,
-                    "path": request.url.path,
-                    "error": str(e),
-                    "process_time_ms": process_time,
-                },
+            # 记录详细的请求异常信息
+            context_logger.error(
+                f"请求处理异常: {request.method} {request.url.path} - {type(e).__name__}: {str(e)} ({process_time:.2f}ms)"
             )
 
             raise
+        finally:
+            # 清理请求上下文
+            LogContext.clear()
