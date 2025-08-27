@@ -9,6 +9,7 @@ from repositories import role_repository
 from schemas.base import Success, SuccessExtra
 from schemas.response import (
     ResponseBase,
+    RoleAuthorizedResponse,
     RoleDetailResponse,
     RoleListResponse,
 )
@@ -72,7 +73,7 @@ async def delete_role(
     return json.loads(result.body)
 
 
-@router.get("/authorized", summary="查看角色权限", response_model=RoleDetailResponse)
+@router.get("/authorized", summary="查看角色权限", response_model=RoleAuthorizedResponse)
 async def get_role_authorized(id: int = Query(..., description="角色ID")):
     role_obj = await role_repository.get(id=id)
     data = await role_obj.to_dict(m2m=True)

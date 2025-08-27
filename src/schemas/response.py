@@ -171,6 +171,17 @@ class RoleListItem(BaseModel):
     created_at: datetime | None = Field(description="创建时间")
 
 
+class RoleAuthorizedInfo(BaseModel):
+    """角色权限详情（包含完整的菜单和API信息）"""
+    id: int = Field(description="角色ID")
+    name: str = Field(description="角色名称")
+    desc: str | None = Field(description="角色描述")
+    menus: list[MenuItem] = Field(default_factory=list, description="菜单列表")
+    apis: list["ApiInfo"] = Field(default_factory=list, description="API权限列表")
+    created_at: datetime | None = Field(description="创建时间")
+    updated_at: datetime | None = Field(description="更新时间")
+
+
 # ============= 部门相关响应模型 =============
 class DeptInfo(BaseModel):
     """部门信息"""
@@ -212,6 +223,7 @@ class AuditLogItem(BaseModel):
 # 递归模型更新
 MenuItem.model_rebuild()
 DeptInfo.model_rebuild()
+RoleAuthorizedInfo.model_rebuild()
 
 
 # ============= 类型别名（便于使用） =============
@@ -235,6 +247,7 @@ MenuDetailResponse = ResponseBase[MenuItem]
 # 角色相关
 RoleListResponse = PageResponse[list[RoleListItem]]
 RoleDetailResponse = ResponseBase[RoleInfo]
+RoleAuthorizedResponse = ResponseBase[RoleAuthorizedInfo]
 
 # 部门相关
 DeptListResponse = ResponseBase[list[DeptInfo]]
