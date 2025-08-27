@@ -4,7 +4,7 @@
 """
 from typing import Any, Generic, TypeVar
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 T = TypeVar("T")
 
@@ -14,6 +14,12 @@ class ResponseBase(BaseModel, Generic[T]):
     code: int = Field(default=200, description="响应状态码")
     msg: str = Field(default="OK", description="响应消息")
     data: T | None = Field(default=None, description="响应数据")
+
+    @field_validator("msg", mode="before")
+    @classmethod
+    def set_default_msg(cls, v):
+        """当msg为None时，设置默认值"""
+        return "OK" if v is None else v
 
     class Config:
         json_schema_extra = {
@@ -33,6 +39,12 @@ class PageResponse(BaseModel, Generic[T]):
     total: int = Field(default=0, description="总记录数")
     page: int = Field(default=1, description="当前页码")
     page_size: int = Field(default=20, description="每页数量")
+
+    @field_validator("msg", mode="before")
+    @classmethod
+    def set_default_msg(cls, v):
+        """当msg为None时，设置默认值"""
+        return "OK" if v is None else v
 
     class Config:
         json_schema_extra = {
