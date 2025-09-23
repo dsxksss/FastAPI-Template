@@ -21,19 +21,20 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
-COPY requirements.txt .
+# 复制依赖文件并安装 Python 依赖
+COPY pyproject.toml ./
+COPY README.md ./
+COPY src ./src
 
-# 安装 Python 依赖
 RUN pip install --no-cache-dir --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple && \
-    pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+    pip install --no-cache-dir . -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制项目文件
 COPY . .
 
 # 复制并设置启动脚本权限
-COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+COPY scripts/docker-entrypoint.sh /scripts/docker-entrypoint.sh
+RUN chmod +x /scripts/docker-entrypoint.sh
 
 # 创建必要的目录
 RUN mkdir -p /app/logs /app/static /app/migrations
@@ -49,4 +50,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/docs || exit 1
 
 # 启动命令
-CMD ["/docker-entrypoint.sh"]
+CMD ["/scripts/docker-entrypoint.sh"]
