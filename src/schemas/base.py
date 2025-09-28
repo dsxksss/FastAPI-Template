@@ -11,6 +11,9 @@ class Success(JSONResponse):
         data: Any | None = None,
         **kwargs,
     ):
+        # 确保msg不为None
+        if msg is None:
+            msg = "OK"
         content = {"code": code, "msg": msg, "data": data}
         content.update(kwargs)
         super().__init__(content=content, status_code=code)
@@ -24,6 +27,9 @@ class Fail(JSONResponse):
         data: Any | None = None,
         **kwargs,
     ):
+        # 确保msg不为None
+        if msg is None:
+            msg = "Error"
         content = {"code": code, "msg": msg, "data": data}
         content.update(kwargs)
         super().__init__(content=content, status_code=code)
@@ -40,6 +46,9 @@ class SuccessExtra(JSONResponse):
         page_size: int = 20,
         **kwargs,
     ):
+        # 确保msg不为None
+        if msg is None:
+            msg = "OK"
         content = {
             "code": code,
             "msg": msg,

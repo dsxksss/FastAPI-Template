@@ -4,7 +4,9 @@
 """
 
 import uuid
+import traceback
 from contextvars import ContextVar
+from typing import Any, Dict, Optional
 
 # 延迟导入，避免循环导入
 # from log import logger
@@ -12,6 +14,7 @@ from contextvars import ContextVar
 # 上下文变量
 request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
 user_id_var: ContextVar[str] = ContextVar("user_id", default="-")
+request_context_var: ContextVar[Dict[str, Any]] = ContextVar("request_context", default={})
 
 
 class LogContext:
@@ -46,21 +49,47 @@ class LogContext:
         return user_id_var.get()
 
     @staticmethod
+    def set_context(key: str, value: Any) -> None:
+        """设置上下文信息"""
+        context = request_context_var.get({})
+        context[key] = value
+        request_context_var.set(context)
+    
+    @staticmethod
+    def get_context(key: str = None) -> Any:
+        """获取上下文信息"""
+        context = request_context_var.get({})
+        return context.get(key) if key else context
+    
+    @staticmethod
+    def update_context(**kwargs) -> None:
+        """批量更新上下文信息"""
+        context = request_context_var.get({})
+        context.update(kwargs)
+        request_context_var.set(context)
+    
+    @staticmethod
     def get_logger():
         """获取带上下文的logger"""
         # 延迟导入避免循环导入
         from log.log import logger
 
-        return logger.bind(
-            request_id=LogContext.get_request_id(),
-            user_id=LogContext.get_user_id(),
-        )
+        # 获取所有上下文信息
+        context = request_context_var.get({})
+        base_context = {
+            "request_id": LogContext.get_request_id(),
+            "user_id": LogContext.get_user_id(),
+        }
+        base_context.update(context)
+        
+        return logger.bind(**base_context)
 
     @staticmethod
     def clear():
         """清除上下文"""
         request_id_var.set("-")
         user_id_var.set("-")
+        request_context_var.set({})
 
 
 class RequestLogContext:
@@ -84,9 +113,23 @@ class RequestLogContext:
         return LogContext.get_logger()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # 如果有异常，记录异常信息
+        if exc_type:
+            logger = LogContext.get_logger()
+            logger.error(
+                f"请求上下文中发生异常: {exc_type.__name__}: {exc_val}",
+                extra={
+                    "exception_type": exc_type.__name__,
+                    "exception_msg": str(exc_val),
+                    "traceback": traceback.format_exc()
+                }
+            )
+        
         # 恢复旧值
         request_id_var.set(self.old_request_id)
         user_id_var.set(self.old_user_id)
+        # 清除请求级上下文
+        request_context_var.set({})
 
 
 # 便捷函数

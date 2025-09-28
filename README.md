@@ -267,6 +267,18 @@ uv run uvicorn src:app --reload --host 0.0.0.0 --port 25466
 uv run uvicorn src:app --host 0.0.0.0 --port 25466 --workers 4
 ```
 
+### 🐳 使用 Docker 运行项目
+
+```bash
+# 构建镜像（在项目根目录执行）
+docker build -t fastapi-template .
+
+# 启动容器并映射端口，可选加载环境变量
+docker run --rm -p 8000:8000 --env-file .env fastapi-template
+```
+
+镜像启动后即可访问 http://localhost:8000/docs 验证服务是否正常，或使用 `curl http://localhost:8000/api/v1/base/health` 进行健康检查。
+
 ### 5. 访问服务
 
 - **🌐 官网文档**: http://fastapi.infyai.cn/

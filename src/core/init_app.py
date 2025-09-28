@@ -21,6 +21,7 @@ from core.exceptions import (
     RequestValidationHandle,
     ResponseValidationError,
     ResponseValidationHandle,
+    UnhandledExceptionHandle,
 )
 from core.middlewares import (
     BackGroundTaskMiddleware,
@@ -68,6 +69,8 @@ def register_exceptions(app: FastAPI):
     app.add_exception_handler(IntegrityError, IntegrityHandle)
     app.add_exception_handler(RequestValidationError, RequestValidationHandle)
     app.add_exception_handler(ResponseValidationError, ResponseValidationHandle)
+    # 注册通用异常处理器（必须放在最后，作为兜底）
+    app.add_exception_handler(Exception, UnhandledExceptionHandle)
     # 注册限流异常处理
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
