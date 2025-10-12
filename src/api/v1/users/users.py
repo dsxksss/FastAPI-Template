@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, Body, Query
 
 from schemas.response import (
@@ -31,8 +29,7 @@ async def list_user(
         email=email,
         dept_id=dept_id,
     )
-    # 转换JSONResponse为字典
-    return json.loads(result.body)
+    return result
 
 
 @router.get("/get", summary="查看用户", response_model=UserDetailResponse)
@@ -40,7 +37,7 @@ async def get_user(
     user_id: int = Query(..., description="用户ID"),
 ):
     result = await user_service.get_user_detail(user_id)
-    return json.loads(result.body)
+    return result
 
 
 @router.post("/create", summary="创建用户", response_model=UserCreateResponse)
@@ -48,7 +45,7 @@ async def create_user(
     user_in: UserCreate,
 ):
     result = await user_service.create_user(user_in)
-    return json.loads(result.body)
+    return result
 
 
 @router.post("/update", summary="更新用户", response_model=UserUpdateResponse)
@@ -56,7 +53,7 @@ async def update_user(
     user_in: UserUpdate,
 ):
     result = await user_service.update_user(user_in)
-    return json.loads(result.body)
+    return result
 
 
 @router.delete("/delete", summary="删除用户", response_model=UserDeleteResponse)
@@ -64,10 +61,10 @@ async def delete_user(
     user_id: int = Query(..., description="用户ID"),
 ):
     result = await user_service.delete_user(user_id)
-    return json.loads(result.body)
+    return result
 
 
 @router.post("/reset_password", summary="重置密码", response_model=ResponseBase[None])
 async def reset_password(user_id: int = Body(..., description="用户ID", embed=True)):
     result = await user_service.reset_user_password(user_id)
-    return json.loads(result.body)
+    return result

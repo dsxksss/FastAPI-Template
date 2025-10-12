@@ -4,14 +4,19 @@ from typing import Optional
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBasic,
+    HTTPBasicCredentials,
+    HTTPBearer,
+)
 
 from core.ctx import CTX_USER_ID
 from models import Role, User
 from settings.config import settings
 
 security = HTTPBasic()
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_username(
@@ -34,10 +39,12 @@ def get_current_username(
 
 class AuthControl:
     @classmethod
-    async def is_authed(cls, token: str = Depends(bearer_scheme)) -> Optional["User"]:
+    async def is_authed(
+        cls, token: HTTPAuthorizationCredentials | None = Depends(bearer_scheme)
+    ) -> Optional["User"]:
         try:
             # 直接使用 HTTPBearer 提供的 token (已经去掉了 Bearer 前缀)
-            if not token:
+            if token is None or not token.credentials:
                 raise HTTPException(
                     status_code=401, detail="Missing authentication token"
                 )

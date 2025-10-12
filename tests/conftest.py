@@ -2,12 +2,45 @@
 
 import asyncio
 import os
+import subprocess
+import sys
 import tempfile
+import warnings
 from collections.abc import AsyncGenerator
 
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+
+os.environ.setdefault("APP_ENV", "testing")
+os.environ.setdefault("SWAGGER_UI_PASSWORD", "test_password")
+os.environ.setdefault("TESTING", "true")
+os.environ.setdefault("APP_TITLE", "FastAPI Backend Template")
+os.environ.setdefault("PROJECT_NAME", "FastAPI Backend Template")
+
+try:  # pragma: no cover - fallback for environments without pytest-asyncio
+    import pytest_asyncio  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "pytest-asyncio>=0.23,<0.24"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        warnings.warn(
+            "Installed pytest-asyncio dynamically to enable async fixtures."
+        )
+        import pytest_asyncio  # type: ignore  # noqa: F401
+    except Exception as exc:  # pragma: no cover
+        warnings.warn(
+            f"pytest-asyncio is required for async tests but could not be installed: {exc}"
+        )
+
+if "pytest_asyncio" in sys.modules:  # pragma: no cover - plugin auto-registration helper
+    pytest_plugins = ("pytest_asyncio",)
+
 from src import app
 from tortoise import Tortoise
 
