@@ -1,8 +1,8 @@
-import json
 import os
+import platform
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -17,14 +17,7 @@ from schemas.login import (
     RefreshTokenRequest,
     TokenRefreshOut,
 )
-from schemas.response import (
-    CurrentUserResponse,
-    HealthInfo,
-    HealthResponse,
-    TokenResponse,
-    VersionInfo,
-    VersionResponse,
-)
+from schemas.response import CurrentUserResponse, TokenResponse
 from settings import settings
 from utils.jwt import create_token_pair, verify_token
 
@@ -63,8 +56,7 @@ async def login_access_token(request: Request, credentials: CredentialsSchema):
         username=user.username,
         expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
-    result = Success(data=data.model_dump())
-    return json.loads(result.body)
+    return Success(data=data.model_dump())
 
 
 @router.post("/refresh_token", summary="刷新token", response_model=TokenResponse)
@@ -93,12 +85,10 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
             expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
 
-        result = Success(data=data.model_dump())
-        return json.loads(result.body)
+        return Success(data=data.model_dump())
 
-    except Exception:
-        result = Fail(code=401, msg="令牌无效或已过期")
-        return json.loads(result.body)
+    except Exception as exc:  # noqa: BLE001 - propagate as HTTP error for clarity
+        raise HTTPException(status_code=401, detail="令牌无效或已过期") from exc
 
 
 @router.get("/userinfo", summary="查看用户信息", response_model=CurrentUserResponse)
@@ -106,32 +96,35 @@ async def get_userinfo(current_user: User = DependAuth):
     user_id = CTX_USER_ID.get()
     user_obj = await user_repository.get(id=user_id)
     user_dict = await user_obj.to_dict()
-    result = Success(data=user_dict)
-    return json.loads(result.body)
+    return Success(data=user_dict)
 
 
-@router.get("/health", summary="健康检查", response_model=HealthResponse)
+@router.get("/health", summary="健康检查")
 async def health_check():
     """系统健康检查"""
-    health_data = HealthInfo(
-        status="healthy",
-        timestamp=datetime.now(UTC),
-        environment=settings.APP_ENV,
-        database="connected"
-    )
-    return HealthResponse(code=200, msg="OK", data=health_data)
+
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(UTC).isoformat(),
+        "version": settings.VERSION,
+        "environment": settings.APP_ENV,
+        "service": settings.PROJECT_NAME,
+        "database": "connected",
+    }
 
 
-@router.get("/version", summary="版本信息", response_model=VersionResponse)
+@router.get("/version", summary="版本信息")
 async def get_version():
     """获取API版本信息"""
-    version_data = VersionInfo(
-        app_name=settings.APP_TITLE,
-        version=settings.VERSION,
-        api_version="v1",
-        environment=settings.APP_ENV
-    )
-    return VersionResponse(code=200, msg="OK", data=version_data)
+
+    return {
+        "version": settings.VERSION,
+        "app_title": settings.APP_TITLE,
+        "project_name": settings.PROJECT_NAME,
+        "build": os.getenv("APP_BUILD", "dev"),
+        "commit": os.getenv("GIT_COMMIT", "unknown"),
+        "python_version": platform.python_version(),
+    }
 
 
 # @router.get("/usermenu", summary="查看用户菜单", dependencies=[DependAuth])

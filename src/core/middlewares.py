@@ -2,6 +2,7 @@ import json
 import re
 from collections.abc import AsyncGenerator
 from datetime import datetime
+import traceback
 from typing import Any
 
 from fastapi import FastAPI
