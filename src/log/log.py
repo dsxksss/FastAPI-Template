@@ -1,12 +1,62 @@
+import logging
 import os
 import sys
 import json
 from datetime import date, datetime
-from typing import Any, Dict
+from typing import Any, Dict, Set
 
 from loguru import logger as loguru_logger
 
 from settings import settings
+
+
+LOGGING_RESERVED_FIELDS: Set[str] = {
+    "name",
+    "msg",
+    "args",
+    "levelname",
+    "levelno",
+    "pathname",
+    "filename",
+    "module",
+    "exc_info",
+    "exc_text",
+    "stack_info",
+    "lineno",
+    "funcName",
+    "created",
+    "msecs",
+    "relativeCreated",
+    "thread",
+    "threadName",
+    "processName",
+    "process",
+}
+
+
+class InterceptHandler(logging.Handler):
+    """将标准 logging 日志转发到 loguru."""
+
+    def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover - 直接调用
+        try:
+            level = loguru_logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        frame, depth = logging.currentframe(), 2
+        while frame and frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+
+        extra = {
+            key: value
+            for key, value in record.__dict__.items()
+            if key not in LOGGING_RESERVED_FIELDS
+        }
+
+        loguru_logger.bind(**extra).opt(
+            depth=depth, exception=record.exc_info
+        ).log(level, record.getMessage())
 
 
 class LoggingConfig:
@@ -93,6 +143,20 @@ class LoggingConfig:
         """配置日志输出"""
         # 清除默认处理器
         loguru_logger.remove()
+
+        # 拦截标准 logging，统一输出格式
+        intercept_handler = InterceptHandler()
+        logging.basicConfig(handlers=[intercept_handler], level=0, force=True)
+
+        for logger_name in (
+            "uvicorn",
+            "uvicorn.error",
+            "uvicorn.access",
+            "fastapi",
+        ):
+            standard_logger = logging.getLogger(logger_name)
+            standard_logger.handlers = [intercept_handler]
+            standard_logger.propagate = False
 
         # 启用统一 patcher，确保所有日志输出为 JSON 结构
         loguru_logger.configure(patcher=self._patch_record)
