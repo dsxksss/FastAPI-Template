@@ -130,7 +130,7 @@ disable = ["C0103", "R0903", "W0613"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --strict-config"
+addopts = "-ra -q --strict-markers --strict-config -p pytest_asyncio"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
