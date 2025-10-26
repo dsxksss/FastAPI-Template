@@ -6,6 +6,7 @@ from typing import Any
 import redis.asyncio as redis
 
 from log import logger
+from schemas.base import Fail, Success, SuccessExtra
 from settings.config import settings
 
 
@@ -149,6 +150,15 @@ def cached(prefix: str, ttl: int | None = None, key_func: Callable | None = None
             cached_result = await cache_manager.get(cache_key)
             if cached_result is not None:
                 logger.debug(f"缓存命中: {cache_key}")
+                if isinstance(cached_result, dict) and cached_result.get("__response__"):
+                    response_type = cached_result.get("class")
+                    payload = cached_result.get("payload", {})
+                    response_cls = {
+                        "Success": Success,
+                        "Fail": Fail,
+                        "SuccessExtra": SuccessExtra,
+                    }.get(response_type, Success)
+                    return response_cls(**payload)
                 return cached_result
 
             # 执行原函数
@@ -156,7 +166,19 @@ def cached(prefix: str, ttl: int | None = None, key_func: Callable | None = None
 
             # 设置缓存
             if result is not None:
-                await cache_manager.set(cache_key, result, ttl)
+                value_to_cache: Any = result
+                if isinstance(result, (Success, Fail, SuccessExtra)):
+                    body_bytes = result.body
+                    if isinstance(body_bytes, bytes):
+                        payload = json.loads(body_bytes.decode("utf-8"))
+                    else:
+                        payload = json.loads(body_bytes)
+                    value_to_cache = {
+                        "__response__": True,
+                        "class": result.__class__.__name__,
+                        "payload": payload,
+                    }
+                await cache_manager.set(cache_key, value_to_cache, ttl)
                 logger.debug(f"缓存设置: {cache_key}")
 
             return result
