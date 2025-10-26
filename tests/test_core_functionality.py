@@ -19,25 +19,21 @@ class TestJWTCore:
     def test_token_creation_and_verification(self):
         """测试令牌创建和验证"""
         # 创建令牌对
-        access_token, refresh_token = create_token_pair(
-            user_id=1, username="test_user", is_superuser=False
-        )
+        access_token, refresh_token = create_token_pair(user_id=1)
 
         # 验证访问令牌
         access_payload = verify_token(access_token, "access")
         assert access_payload.user_id == 1
-        assert access_payload.username == "test_user"
         assert access_payload.token_type == "access"
 
         # 验证刷新令牌
         refresh_payload = verify_token(refresh_token, "refresh")
         assert refresh_payload.user_id == 1
-        assert refresh_payload.username == "test_user"
         assert refresh_payload.token_type == "refresh"
 
     def test_token_type_security(self):
         """测试令牌类型安全"""
-        access_token, refresh_token = create_token_pair(1, "test", False)
+        access_token, refresh_token = create_token_pair(1)
 
         # 用错误类型验证应该失败
         with pytest.raises(Exception):  # noqa: B017
@@ -53,8 +49,6 @@ class TestJWTCore:
         # 创建过期令牌
         expired_payload = JWTPayload(
             user_id=1,
-            username="test",
-            is_superuser=False,
             exp=datetime.now(UTC) - timedelta(minutes=1),
             token_type="access",
         )
@@ -80,15 +74,11 @@ class TestDataValidation:
         """测试JWT载荷验证"""
         payload = JWTPayload(
             user_id=123,
-            username="test_user",
-            is_superuser=True,
             exp=datetime.now(UTC) + timedelta(hours=1),
             token_type="access",
         )
 
         assert payload.user_id == 123
-        assert payload.username == "test_user"
-        assert payload.is_superuser is True
         assert payload.token_type == "access"
 
 

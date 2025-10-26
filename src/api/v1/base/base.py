@@ -79,9 +79,7 @@ async def login_access_token(request: Request, credentials: CredentialsSchema):
     await user_repository.update_last_login(user.id)
 
     # 创建访问令牌和刷新令牌
-    access_token, refresh_token = create_token_pair(
-        user_id=user.id, username=user.username, is_superuser=user.is_superuser
-    )
+    access_token, refresh_token = create_token_pair(user_id=user.id)
 
     data = JWTOut(
         access_token=access_token,
@@ -108,9 +106,7 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
             return Fail(code=401, msg="用户不存在或已被禁用")
 
         # 创建新的令牌对
-        access_token, refresh_token = create_token_pair(
-            user_id=user.id, username=user.username, is_superuser=user.is_superuser
-        )
+        access_token, refresh_token = create_token_pair(user_id=user.id)
 
         data = TokenRefreshOut(
             access_token=access_token,
