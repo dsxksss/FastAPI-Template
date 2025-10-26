@@ -16,24 +16,25 @@ if str(SRC_DIR) not in sys.path:
 
 from core.dependency import get_current_username
 from core.exceptions import SettingNotFound
-from core.init_app import (
-    init_data,
-    make_middlewares,
-    register_exceptions,
-    register_routers,
-)
+from core.init_app import init_data, make_middlewares, register_exceptions, register_routers
 
 try:
     from settings.config import settings
 except ImportError as e:
     raise SettingNotFound("Can not import settings") from e
 
+from utils.cache import cache_manager
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await cache_manager.connect()
     await init_data()
-    yield
-    await Tortoise.close_connections()
+    try:
+        yield
+    finally:
+        await cache_manager.disconnect()
+        await Tortoise.close_connections()
 
 
 def create_app() -> FastAPI:
