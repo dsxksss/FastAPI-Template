@@ -65,9 +65,7 @@ def sample_jwt_token():
     """样例JWT令牌"""
     from utils.jwt import create_token_pair
 
-    access_token, refresh_token = create_token_pair(
-        user_id=1, username="test_user", is_superuser=True
-    )
+    access_token, refresh_token = create_token_pair(user_id=1)
 
     return {
         "access_token": access_token,

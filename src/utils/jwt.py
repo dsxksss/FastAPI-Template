@@ -17,14 +17,12 @@ def create_access_token(*, data: JWTPayload):
     return encoded_jwt
 
 
-def create_refresh_token(user_id: int, username: str, is_superuser: bool) -> str:
+def create_refresh_token(user_id: int) -> str:
     """创建刷新令牌"""
     expire = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
 
     payload = JWTPayload(
         user_id=user_id,
-        username=username,
-        is_superuser=is_superuser,
         exp=expire,
         token_type="refresh",
     )
@@ -57,9 +55,7 @@ def verify_token(token: str, token_type: str = "access") -> JWTPayload:
         raise jwt.InvalidTokenError("Invalid token") from e
 
 
-def create_token_pair(
-    user_id: int, username: str, is_superuser: bool
-) -> tuple[str, str]:
+def create_token_pair(user_id: int) -> tuple[str, str]:
     """创建访问令牌和刷新令牌对"""
     # 创建访问令牌
     access_expire = datetime.now(UTC) + timedelta(
@@ -67,14 +63,12 @@ def create_token_pair(
     )
     access_payload = JWTPayload(
         user_id=user_id,
-        username=username,
-        is_superuser=is_superuser,
         exp=access_expire,
         token_type="access",
     )
     access_token = create_access_token(data=access_payload)
 
     # 创建刷新令牌
-    refresh_token = create_refresh_token(user_id, username, is_superuser)
+    refresh_token = create_refresh_token(user_id)
 
     return access_token, refresh_token

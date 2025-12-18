@@ -1,3 +1,4 @@
+import asyncio
 from functools import partial
 
 from aerich import Command
@@ -270,9 +271,14 @@ async def init_data():
     await init_db()
     logger.info("✅ 数据库初始化完成")
 
-    await init_superuser()
-    await init_menus()
-    await init_apis()
+    logger.info("🔄 并行初始化基础数据...")
+    await asyncio.gather(
+        init_superuser(),
+        init_menus(),
+        init_apis(),
+    )
+    logger.info("✅ 基础数据初始化完成")
+
     await init_roles()
 
     logger.info("🎉 系统初始化完成！")

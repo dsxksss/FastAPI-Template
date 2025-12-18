@@ -5,10 +5,8 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
-from core.ctx import CTX_USER_ID
 from log import logger
 from repositories.file_mapping import file_mapping_repository
-from repositories.user import user_repository
 from schemas.base import Success
 
 # 文件安全配置
@@ -86,20 +84,18 @@ class FileService:
         self.uploads_dir = Path(UPLOADS_DIR)
         self.uploads_dir.mkdir(exist_ok=True)
 
-    async def upload_file(self, file: UploadFile) -> Success:
+    async def upload_file(self, file: UploadFile, user_id: int) -> Success:
         """
         通用文件上传
 
         Args:
             file: 上传的文件
+            user_id: 当前用户ID
 
         Returns:
             Success: 上传结果响应
         """
         try:
-            # 用户身份验证
-            user = await self._authenticate_user()
-
             # 文件安全验证
             self._validate_file_security(file)
 
@@ -121,7 +117,7 @@ class FileService:
 
             # 保存文件映射信息
             await self._save_file_mapping(
-                {"file_id": file_id, "file_path": str(file_path)}, file, user.id
+                {"file_id": file_id, "file_path": str(file_path)}, file, user_id
             )
 
             # 返回文件信息
@@ -143,18 +139,6 @@ class FileService:
         except Exception as e:
             self.logger.error(f"文件上传失败: {str(e)}")
             raise HTTPException(status_code=500, detail="文件上传失败") from e
-
-    async def _authenticate_user(self):
-        """验证用户身份"""
-        user_id = CTX_USER_ID.get()
-        if not user_id:
-            raise HTTPException(status_code=401, detail="用户未认证")
-
-        user = await user_repository.get(user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="用户不存在")
-
-        return user
 
     def _validate_file_security(self, file: UploadFile) -> None:
         """验证文件安全性"""

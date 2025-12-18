@@ -1,10 +1,13 @@
+import locale
 import os
 import platform
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request
 from slowapi import Limiter
+from slowapi import extension as slowapi_extension
 from slowapi.util import get_remote_address
+from starlette.config import Config as StarletteConfig
 
 from core.ctx import CTX_USER_ID
 from core.dependency import DependAuth
@@ -21,7 +24,37 @@ from schemas.response import CurrentUserResponse, TokenResponse
 from settings import settings
 from utils.jwt import create_token_pair, verify_token
 
-# 创建限流器实例
+class AdaptiveEnvConfig(StarletteConfig):
+    def _read_file(self, file_name):
+        encodings = ["utf-8", "utf-8-sig"]
+        preferred = locale.getpreferredencoding(do_setlocale=False)
+        if preferred and preferred.lower() not in (e.lower() for e in encodings):
+            encodings.append(preferred)
+        encodings.append("latin-1")  # final fallback to avoid UnicodeDecodeError
+
+        last_error: UnicodeDecodeError | None = None
+        for encoding in encodings:
+            try:
+                file_values: dict[str, str] = {}
+                with open(file_name, encoding=encoding) as input_file:
+                    for line in input_file.readlines():
+                        line = line.strip()
+                        if "=" in line and not line.startswith("#"):
+                            key, value = line.split("=", 1)
+                            key = key.strip()
+                            value = value.strip().strip("\"'")
+                            file_values[key] = value
+                return file_values
+            except UnicodeDecodeError as exc:
+                last_error = exc
+        if last_error:
+            raise last_error
+        return {}
+
+
+if getattr(slowapi_extension.Config, "__name__", "") != "AdaptiveEnvConfig":
+    slowapi_extension.Config = AdaptiveEnvConfig
+
 limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
@@ -46,9 +79,7 @@ async def login_access_token(request: Request, credentials: CredentialsSchema):
     await user_repository.update_last_login(user.id)
 
     # 创建访问令牌和刷新令牌
-    access_token, refresh_token = create_token_pair(
-        user_id=user.id, username=user.username, is_superuser=user.is_superuser
-    )
+    access_token, refresh_token = create_token_pair(user_id=user.id)
 
     data = JWTOut(
         access_token=access_token,
@@ -75,9 +106,7 @@ async def refresh_access_token(request: Request, refresh_request: RefreshTokenRe
             return Fail(code=401, msg="用户不存在或已被禁用")
 
         # 创建新的令牌对
-        access_token, refresh_token = create_token_pair(
-            user_id=user.id, username=user.username, is_superuser=user.is_superuser
-        )
+        access_token, refresh_token = create_token_pair(user_id=user.id)
 
         data = TokenRefreshOut(
             access_token=access_token,
